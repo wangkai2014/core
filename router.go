@@ -12,16 +12,16 @@ type routerItem struct {
 	Route          RouteHandler
 }
 
-// Route Map, use RegExp as key!
-type RouteHandlerFuncMap map[string]RouteHandlerFunc
-
 // Route Handler Interface
 type RouteHandler interface {
 	View(*Core)
 }
 
-// Route Handler Map, use RegExp as key!
-type RouteHandlerMap map[string]RouteHandler
+// Route Handler Func Map
+type FuncMap map[string]RouteHandlerFunc
+
+// Route Handler Map
+type Map map[string]RouteHandler
 
 type routes []*routerItem
 
@@ -81,13 +81,13 @@ func (ro *Router) RegisterFunc(RegExpRule string, Function RouteHandlerFunc) *Ro
 	return ro
 }
 
-// Register Map to Router
-func (ro *Router) RegisterFuncMap(routeHandlerFuncMap RouteHandlerFuncMap) *Router {
-	if routeHandlerFuncMap == nil {
+// Register Map to Router, use RegExp as key!
+func (ro *Router) RegisterFuncMap(funcMap FuncMap) *Router {
+	if funcMap == nil {
 		return ro
 	}
 
-	for rule, function := range routeHandlerFuncMap {
+	for rule, function := range funcMap {
 		ro.register(rule, function)
 	}
 	ro.sortout()
@@ -101,13 +101,13 @@ func (ro *Router) Register(RegExpRule string, handler RouteHandler) *Router {
 	return ro
 }
 
-// Register Handler Map to Router
-func (ro *Router) RegisterMap(routeHandlerMap RouteHandlerMap) *Router {
-	if routeHandlerMap == nil {
+// Register Handler Map to Router, use RegExp as key!
+func (ro *Router) RegisterMap(_map Map) *Router {
+	if _map == nil {
 		return ro
 	}
 
-	for rule, handler := range routeHandlerMap {
+	for rule, handler := range _map {
 		ro.register(rule, handler)
 	}
 	ro.sortout()
@@ -200,7 +200,7 @@ func (ro RouteReset) View(c *Core) {
 }
 
 func (c *Core) RouteDealer(ro RouteHandler) {
-	for _, routeAssert := range _routeAsserter {
+	for _, routeAssert := range _getAsserter() {
 		if routeAssert.Assert(c, ro) {
 			return
 		}
@@ -226,14 +226,20 @@ func (ra RouteAsserterFunc) Assert(c *Core, ro RouteHandler) bool {
 	return ra(c, ro)
 }
 
-var _routeAsserter = []RouteAsserter{}
-
 func RegisterRouteAsserter(ra ...RouteAsserter) {
-	_routeAsserter = append(_routeAsserter, ra...)
+	_routeAsserter.Lock()
+	defer _routeAsserter.Unlock()
+	_routeAsserter.ro = append(_routeAsserter.ro, ra...)
 }
 
 func RegisterRouteAsserterFunc(ra ...RouteAsserterFunc) {
 	for _, raa := range ra {
 		RegisterRouteAsserter(raa)
 	}
+}
+
+func _getAsserter() []RouteAsserter {
+	_routeAsserter.RLock()
+	defer _routeAsserter.RUnlock()
+	return append([]RouteAsserter{}, _routeAsserter.ro...)
 }

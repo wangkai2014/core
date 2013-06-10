@@ -22,7 +22,7 @@ func (in *Index) Get() {
 }
 
 func init() {
-	core.Route.RegisterMap(core.RouteHandlerMap{
+	core.Route.RegisterMap(core.Map{
 		`^/$`: &Index{},
 		`^/(?P<Id>[0-9-]+)/?$`: &Index{},
 	})

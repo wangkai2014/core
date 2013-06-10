@@ -60,10 +60,12 @@ func (_ SessionMemory) Set(c *Core, data interface{}) {
 		go sessionExpiryCheck()
 	}
 
-	sesCookie, err := c.Cookie(SessionCookieName).Get()
+	sessionCookieName := SessionCookieName.String()
+
+	sesCookie, err := c.Cookie(sessionCookieName).Get()
 
 	if err != nil {
-		sesCookie, _ = c.Cookie(SessionCookieName).Value(KeyGen()).SaveRes().Get()
+		sesCookie, _ = c.Cookie(sessionCookieName).Value(KeyGen()).SaveRes().Get()
 	}
 
 	sessionMap.m[sesCookie.Value] = &session{data, time.Now().Add(SessionExpire)}
@@ -77,7 +79,7 @@ func (_ SessionMemory) Init(c *Core) {
 	sessionMap.Lock()
 	defer sessionMap.Unlock()
 
-	sesCookie, err := c.Cookie(SessionCookieName).Get()
+	sesCookie, err := c.Cookie(SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}
@@ -99,7 +101,7 @@ func (_ SessionMemory) Destroy(c *Core) {
 	sessionMap.Lock()
 	defer sessionMap.Unlock()
 
-	sesCookie, err := c.Cookie(SessionCookieName).Get()
+	sesCookie, err := c.Cookie(SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}
@@ -119,10 +121,11 @@ type SessionFile struct {
 }
 
 func (se SessionFile) Set(c *Core, data interface{}) {
-	sesCookie, err := c.Cookie(SessionCookieName).Get()
+	sessionCookieName := SessionCookieName.String()
+	sesCookie, err := c.Cookie(sessionCookieName).Get()
 
 	if err != nil {
-		sesCookie, _ = c.Cookie(SessionCookieName).Value(KeyGen()).SaveRes().Get()
+		sesCookie, _ = c.Cookie(sessionCookieName).Value(KeyGen()).SaveRes().Get()
 	}
 
 	file, err := os.Create(se.Path + "/" + sesCookie.Value + sessionFileExt)
@@ -137,7 +140,7 @@ func (se SessionFile) Set(c *Core, data interface{}) {
 }
 
 func (se SessionFile) Init(c *Core) {
-	sesCookie, err := c.Cookie(SessionCookieName).Get()
+	sesCookie, err := c.Cookie(SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}
@@ -167,7 +170,7 @@ func (se SessionFile) Init(c *Core) {
 }
 
 func (se SessionFile) Destroy(c *Core) {
-	sesCookie, err := c.Cookie(SessionCookieName).Get()
+	sesCookie, err := c.Cookie(SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}

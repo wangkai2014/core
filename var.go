@@ -60,17 +60,17 @@ var (
 	/*
 		Session Settings
 	*/
-	SessionCookieName                         = "__session"      // Session Cookie Name
-	SessionExpire              time.Duration  = 20 * time.Minute // Session Expiry
-	SessionExpiryCheckInterval time.Duration  = 10 * time.Minute // Session Expire Check Interval
+	SessionCookieName                         = NewAtomicString("__session") // Session Cookie Name
+	SessionExpire              time.Duration  = 20 * time.Minute             // Session Expiry
+	SessionExpiryCheckInterval time.Duration  = 10 * time.Minute             // Session Expire Check Interval
 	sessionExpiryCheckActive                  = false
 	DefaultSessionHandler      SessionHandler = SessionMemory{} // Default Session Handler
 
 	/*
 		Time
 	*/
-	DefaultTimeLoc    *time.Location                     // Default Time Location
-	DefaultTimeFormat = "Monday, _2 January 2006, 15:04" // Default Time Format
+	DefaultTimeLoc    *time.Location                                      // Default Time Location
+	DefaultTimeFormat = NewAtomicString("Monday, _2 January 2006, 15:04") // Default Time Format
 
 	/*
 		Url Reverse
@@ -92,4 +92,9 @@ var (
 	Error500 = func(c *Core) {
 		c.Fmt().Print("<h1>500 Internal Server Error</h1>")
 	}
+
+	_routeAsserter = struct {
+		sync.RWMutex
+		ro []RouteAsserter
+	}{ro: []RouteAsserter{}}
 )

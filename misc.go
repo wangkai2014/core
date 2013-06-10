@@ -5,6 +5,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // Convert String to int64
@@ -90,4 +91,19 @@ func (c *Core) initSecure() {
 func (c *Core) RemoteAddr() string {
 	ip, _, _ := net.SplitHostPort(c.Req.RemoteAddr)
 	return ip
+}
+
+type AtomicString struct {
+	sync.Mutex
+	s string
+}
+
+func NewAtomicString(s string) AtomicString {
+	return AtomicString{s: s}
+}
+
+func (str AtomicString) String() string {
+	str.Lock()
+	defer str.Unlock()
+	return str.s
 }

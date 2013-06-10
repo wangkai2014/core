@@ -32,7 +32,7 @@ func TestVhost(t *testing.T) {
 		},
 	}
 
-	hosts := NewVHost(VHostMap{
+	hosts := NewVHost(Map{
 		`example.com`: pass,
 	})
 
@@ -42,7 +42,7 @@ func TestVhost(t *testing.T) {
 
 	c.Pub.Errors.E404 = pass
 
-	hosts = NewVHost(VHostMap{
+	hosts = NewVHost(Map{
 		`example.com`: fail,
 	})
 
@@ -86,7 +86,7 @@ func TestVhostRegExp(t *testing.T) {
 
 	const rule = `^(?P<subdomain>[a-z]+)\.example\.com`
 
-	vhost := NewVHostRegExp(VHostRegExpMap{
+	vhost := NewVHostRegExp(Map{
 		rule: possible_pass,
 	})
 
@@ -95,7 +95,7 @@ func TestVhostRegExp(t *testing.T) {
 	c.Req.Host = "www.example.com:1234"
 	c.Pub.Group = Group{}
 
-	vhost = NewVHostRegExp(VHostRegExpMap{
+	vhost = NewVHostRegExp(Map{
 		rule: pass,
 	})
 
@@ -105,7 +105,7 @@ func TestVhostRegExp(t *testing.T) {
 
 	c.Pub.Errors.E404 = pass
 
-	vhost = NewVHostRegExp(VHostRegExpMap{
+	vhost = NewVHostRegExp(Map{
 		rule: fail,
 	})
 

@@ -18,11 +18,8 @@ type VHost struct {
 	hosts []*vHost
 }
 
-// Use host name as string (e.g example.com)
-type VHostMap map[string]RouteHandler
-
-// Construct new VHost and Register Map to VHost
-func NewVHost(hosts VHostMap) *VHost {
+// Construct new VHost and Register Map to VHost, Use host name as string (e.g example.com)
+func NewVHost(hosts Map) *VHost {
 	v := &VHost{}
 
 	v.register(hosts)
@@ -30,7 +27,7 @@ func NewVHost(hosts VHostMap) *VHost {
 	return v
 }
 
-func (v *VHost) register(hosts VHostMap) {
+func (v *VHost) register(hosts Map) {
 	v.Lock()
 	defer v.Unlock()
 	for host, routerHandler := range hosts {
@@ -38,7 +35,8 @@ func (v *VHost) register(hosts VHostMap) {
 	}
 }
 
-func (v *VHost) Add(hosts VHostMap) *VHost {
+// Use host name as string (e.g example.com)
+func (v *VHost) Add(hosts Map) *VHost {
 	v.register(hosts)
 	return v
 }
@@ -64,9 +62,6 @@ func (v *VHost) View(c *Core) {
 
 	c.Error404()
 }
-
-// Use host name regexp as string (e.g. (?P<subdomain>[a-z0-9-_]+)\.example\.com)
-type VHostRegExpMap map[string]RouteHandler
 
 type vHostRegExpItem struct {
 	RegExp         string
@@ -95,7 +90,8 @@ type VHostRegExp struct {
 }
 
 // Construct VHostRegExp and Register map to VHostRegExp
-func NewVHostRegExp(hostmap VHostRegExpMap) *VHostRegExp {
+// Use host name regexp as string (e.g. (?P<subdomain>[a-z0-9-_]+)\.example\.com)
+func NewVHostRegExp(hostmap Map) *VHostRegExp {
 	vh := &VHostRegExp{}
 	vh.registerMap(hostmap)
 	return vh
@@ -120,7 +116,7 @@ func (vh *VHostRegExp) register(RegExpRule string, routeHandler RouteHandler) {
 	vh.vhost = append(vh.vhost, &vHostRegExpItem{RegExpRule, regexp.MustCompile(RegExpRule), routeHandler})
 }
 
-func (vh *VHostRegExp) registerMap(hostmap VHostRegExpMap) {
+func (vh *VHostRegExp) registerMap(hostmap Map) {
 	vh.Lock()
 	defer vh.Unlock()
 
@@ -135,7 +131,8 @@ func (vh *VHostRegExp) registerMap(hostmap VHostRegExpMap) {
 	sort.Sort(vh.vhost)
 }
 
-func (vh *VHostRegExp) Add(hostmap VHostRegExpMap) *VHostRegExp {
+// Use host name regexp as string (e.g. (?P<subdomain>[a-z0-9-_]+)\.example\.com)
+func (vh *VHostRegExp) Add(hostmap Map) *VHostRegExp {
 	vh.registerMap(hostmap)
 	return vh
 }

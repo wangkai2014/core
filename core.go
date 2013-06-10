@@ -73,7 +73,7 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			HtmlFunc:   html.FuncMap{},
 			Session:    nil,
 			TimeLoc:    DefaultTimeLoc,
-			TimeFormat: DefaultTimeFormat,
+			TimeFormat: DefaultTimeFormat.String(),
 			Errors: Errors{
 				E403: Error403,
 				E404: Error404,
