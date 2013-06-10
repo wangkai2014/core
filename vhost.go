@@ -25,10 +25,21 @@ type VHostMap map[string]RouteHandler
 func NewVHost(hosts VHostMap) *VHost {
 	v := &VHost{}
 
+	v.register(hosts)
+
+	return v
+}
+
+func (v *VHost) register(hosts VHostMap) {
+	v.Lock()
+	defer v.Unlock()
 	for host, routerHandler := range hosts {
 		v.hosts = append(v.hosts, &vHost{host, routerHandler})
 	}
+}
 
+func (v *VHost) Add(hosts VHostMap) *VHost {
+	v.register(hosts)
 	return v
 }
 
@@ -124,8 +135,9 @@ func (vh *VHostRegExp) registerMap(hostmap VHostRegExpMap) {
 	sort.Sort(vh.vhost)
 }
 
-func (vh *VHostRegExp) AddMap(hostmap VHostRegExpMap) {
+func (vh *VHostRegExp) Add(hostmap VHostRegExpMap) *VHostRegExp {
 	vh.registerMap(hostmap)
+	return vh
 }
 
 func (vh *VHostRegExp) View(c *Core) {
