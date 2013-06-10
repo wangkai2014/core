@@ -98,12 +98,18 @@ type AtomicString struct {
 	s string
 }
 
-func NewAtomicString(s string) AtomicString {
-	return AtomicString{s: s}
+func NewAtomicString(s string) *AtomicString {
+	return &AtomicString{s: s}
 }
 
-func (str AtomicString) String() string {
+func (str *AtomicString) String() string {
 	str.Lock()
 	defer str.Unlock()
 	return str.s
+}
+
+func (str *AtomicString) Set(s string) {
+	str.Lock()
+	defer str.Unlock()
+	str.s = s
 }
