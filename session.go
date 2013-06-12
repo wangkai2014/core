@@ -84,8 +84,7 @@ func (_ SessionMemory) Init(c *Core) {
 		return
 	}
 
-	switch t := sessionMap.m[sesCookie.Value].(type) {
-	case *session:
+	if t, ok := sessionMap.m[sesCookie.Value].(*string); ok {
 		if time.Now().Unix() < t.getExpire().Unix() {
 			c.Pub.Session = t.getData()
 			t.hit()
@@ -106,10 +105,10 @@ func (_ SessionMemory) Destroy(c *Core) {
 		return
 	}
 
-	switch sessionMap.m[sesCookie.Value].(type) {
-	case *session:
+	if t, ok := sessionMap.m[sesCookie.Value].(*string); ok {
 		deleteSessionFromMap(sesCookie.Value)
 	}
+
 	c.Cookie(sesCookie.Name).Delete()
 }
 
