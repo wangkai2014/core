@@ -154,9 +154,7 @@ func (se SessionFile) Init(c *Core) {
 	ses := &session{}
 
 	err = dec.Decode(&ses)
-	if err != nil {
-		panic(err)
-	}
+	Check(err)
 
 	if time.Now().Unix() < ses.getExpire().Unix() {
 		c.Pub.Session = ses.getData()

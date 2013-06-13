@@ -29,7 +29,7 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 			continue
 		}
 		if c.Pub.Group.Get(name) == "" {
-			autoPopulateFieldByMeta(c, field, name)
+			autoPopulateFieldByContext(c, field, name)
 			continue
 		}
 		switch field.Interface().(type) {
@@ -60,7 +60,7 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 		case float64:
 			field.Set(reflect.ValueOf(c.Pub.Group.GetFloat64(name)))
 		default:
-			autoPopulateFieldByMeta(c, field, name)
+			autoPopulateFieldByContext(c, field, name)
 		}
 	}
 }
@@ -68,7 +68,7 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 /*
 Populate Field by Meta
 */
-func autoPopulateFieldByMeta(c *Core, field reflect.Value, name string) {
+func autoPopulateFieldByContext(c *Core, field reflect.Value, name string) {
 	if c.Pub.Context[name] == nil {
 		return
 	}
