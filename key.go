@@ -29,8 +29,10 @@ func KeyGen() string {
 	second := uint64ToByte(uint64(curtime.Unix()))
 	nano := uint64ToByte(uint64(curtime.UnixNano()))
 
-	rand1 := uint64ToByte(uint64(rand.Int63()))
-	rand2 := uint64ToByte(uint64(rand.Int63()))
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	rand1 := uint64ToByte(uint64(random.Int63()))
+	rand2 := uint64ToByte(uint64(random.Int63()))
 
 	b := []byte{}
 
