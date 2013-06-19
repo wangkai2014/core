@@ -1,6 +1,7 @@
 package core
 
 import (
+	"net"
 	"regexp"
 	"sort"
 	"strings"
@@ -50,17 +51,25 @@ func (v *VHost) getHosts() []*vHost {
 }
 
 func (v *VHost) View(c *Core) {
-	for _, host := range v.getHosts() {
-		if len(host.name) > len(c.Req.Host) {
-			continue
-		}
-		if strings.ToLower(host.name) == strings.ToLower(c.Req.Host[:len(host.name)]) {
-			c.RouteDealer(host.route)
-			return
-		}
+	curHostName := c.Req.Host
+	if host, _, err := net.SplitHostPort(curHostName); err == nil {
+		curHostName = host
+	}
+	curHostName = strings.ToLower(curHostName)
+
+	hosts := v.getHosts()
+
+	pos := sort.Search(len(hosts), func(i int) bool {
+		return strings.ToLower(hosts[i].name) >= curHostName
+	})
+
+	if pos == len(hosts) || strings.ToLower(hosts[pos].name) != curHostName {
+		c.Error404()
+		return
 	}
 
-	c.Error404()
+	c.RouteDealer(hosts[pos].route)
+	return
 }
 
 type vHostRegExpItem struct {
