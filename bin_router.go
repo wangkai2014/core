@@ -105,7 +105,7 @@ func (bin *BinRouter) View(c *Core) {
 			c.Error404()
 			return
 		}
-		bin.root.View(c)
+		c.RouteDealer(bin.root)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (bin *BinRouter) View(c *Core) {
 		return
 	}
 
-	routes[pos].route.View(c)
+	c.RouteDealer(routes[pos].route)
 }
 
 func SetBinRouteToMainView() {
