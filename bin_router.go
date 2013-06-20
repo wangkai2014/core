@@ -100,7 +100,7 @@ func (bin *BinRouter) RegisterFuncMap(funcmap FuncMap) *BinRouter {
 }
 
 func (bin *BinRouter) View(c *Core) {
-	if c.pri.path == "/" {
+	if c.pri.path == "" || c.pri.path == "/" {
 		if bin.root == nil {
 			c.Error404()
 			return
@@ -116,6 +116,8 @@ func (bin *BinRouter) View(c *Core) {
 	var dirname string
 	if pos == -1 {
 		dirname = c.pri.path
+		c.pri.curpath = dirname
+		c.pri.path = ""
 	} else {
 		dirname = c.pri.path[:pos]
 		c.pri.curpath += dirname
@@ -135,4 +137,17 @@ func (bin *BinRouter) View(c *Core) {
 	}
 
 	routes[pos].route.View(c)
+}
+
+func SetBinRouteToMainView() {
+	MainView = RouteHandlerFunc(func(c *Core) {
+		appMiddlewares := AppMiddlewares.Init(c)
+		defer appMiddlewares.Post()
+		appMiddlewares.Pre()
+		if c.CutOut() {
+			return
+		}
+
+		BinRoute.View(c)
+	})
 }

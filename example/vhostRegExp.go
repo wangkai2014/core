@@ -9,7 +9,7 @@ func Index(c *core.Core) {
 }
 
 func init() {
-	core.VHostsRegExp.Add(core.Map{
+	core.VHostsRegExp.Register(core.Map{
 		`^(?P<Subdomain>[a-zA-Z0-9]*)\.?example\.com`: core.NewRouter().RegisterFunc("^/", Index),
 	})
 }

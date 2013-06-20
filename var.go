@@ -35,7 +35,8 @@ var (
 	/*
 		Route
 	*/
-	Route = NewRouter()
+	Route    = NewRouter()
+	BinRoute = NewBinRouter()
 
 	/*
 		Form
@@ -96,8 +97,8 @@ var (
 	/*
 		VHost Vars
 	*/
-	VHosts       = NewVHost(nil)
-	VHostsRegExp = NewVHostRegExp(nil)
+	VHosts       = NewVHost()
+	VHostsRegExp = NewVHostRegExp()
 
 	_routeAsserter = struct {
 		sync.RWMutex

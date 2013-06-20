@@ -13,7 +13,7 @@ func wwwExampleCom(c *core.Core) {
 }
 
 func init() {
-	core.VHosts.Add(core.Map{
+	core.VHosts.Register(core.Map{
 		"example.com":     core.NewRouter().RegisterFunc("^/", exampleCom),
 		"dev.example.com": core.NewRouter().RegisterFunc("^/", wwwExampleCom),
 	})

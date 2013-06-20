@@ -19,13 +19,9 @@ type VHost struct {
 	hosts []*vHost
 }
 
-// Construct new VHost and Register Map to VHost, Use host name as string (e.g example.com)
-func NewVHost(hosts Map) *VHost {
-	v := &VHost{}
-
-	v.register(hosts)
-
-	return v
+// Construct New VHost!
+func NewVHost() *VHost {
+	return &VHost{}
 }
 
 func (v *VHost) register(hosts Map) {
@@ -37,7 +33,7 @@ func (v *VHost) register(hosts Map) {
 }
 
 // Use host name as string (e.g example.com)
-func (v *VHost) Add(hosts Map) *VHost {
+func (v *VHost) Register(hosts Map) *VHost {
 	v.register(hosts)
 	return v
 }
@@ -98,12 +94,9 @@ type VHostRegExp struct {
 	vhost vHostRegs
 }
 
-// Construct VHostRegExp and Register map to VHostRegExp
-// Use host name regexp as string (e.g. (?P<subdomain>[a-z0-9-_]+)\.example\.com)
-func NewVHostRegExp(hostmap Map) *VHostRegExp {
-	vh := &VHostRegExp{}
-	vh.registerMap(hostmap)
-	return vh
+// Construct VHostRegExp
+func NewVHostRegExp() *VHostRegExp {
+	return &VHostRegExp{}
 }
 
 func (vh *VHostRegExp) getHosts() vHostRegs {
@@ -141,7 +134,7 @@ func (vh *VHostRegExp) registerMap(hostmap Map) {
 }
 
 // Use host name regexp as string (e.g. (?P<subdomain>[a-z0-9-_]+)\.example\.com)
-func (vh *VHostRegExp) Add(hostmap Map) *VHostRegExp {
+func (vh *VHostRegExp) Register(hostmap Map) *VHostRegExp {
 	vh.registerMap(hostmap)
 	return vh
 }
