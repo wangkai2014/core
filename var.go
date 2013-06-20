@@ -93,6 +93,12 @@ var (
 		c.Fmt().Print("<h1>500 Internal Server Error</h1>")
 	}
 
+	/*
+		VHost Vars
+	*/
+	VHosts       = NewVHost(nil)
+	VHostsRegExp = NewVHostRegExp(nil)
+
 	_routeAsserter = struct {
 		sync.RWMutex
 		ro []RouteAsserter

@@ -13,25 +13,14 @@ func wwwExampleCom(c *core.Core) {
 }
 
 func init() {
-	vhost := core.NewVHost(core.Map{
+	core.VHosts.Add(core.Map{
 		"example.com":     core.NewRouter().RegisterFunc("^/", exampleCom),
 		"dev.example.com": core.NewRouter().RegisterFunc("^/", wwwExampleCom),
-	})
-
-	// Override Main View
-	core.MainView = core.RouteHandlerFunc(func(c *core.Core) {
-		appMiddlewares := core.AppMiddlewares.Init(c)
-		defer appMiddlewares.Post()
-		appMiddlewares.Pre()
-		if c.CutOut() {
-			return
-		}
-
-		vhost.View(c)
 	})
 }
 
 func main() {
 	core.UseMaxCPU()
+	core.SetVHostsToMainView()
 	core.Check(core.StartHttp(":8080"))
 }
