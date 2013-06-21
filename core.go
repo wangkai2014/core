@@ -123,7 +123,7 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	c.Error500()
+	panic(ErrorStr("No Output was sent to Client!"))
 }
 
 // Header returns the header map that will be sent by WriteHeader.
