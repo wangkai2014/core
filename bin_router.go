@@ -99,10 +99,29 @@ func (bin *BinRouter) RegisterFuncMap(funcmap FuncMap) *BinRouter {
 	return bin
 }
 
+func (bin *BinRouter) error404(c *Core) {
+	if !DEBUG {
+		c.Error404()
+		return
+	}
+
+	c.Pub.Status = 404
+	out := c.Fmt()
+	out.Print("404 Not Found\r\n\r\n")
+	out.Print(c.Req.Host+c.pri.curpath, "\r\n\r\n")
+	out.Print("Possible Directory or File!:\r\n")
+	if bin.root != nil {
+		out.Print("/\r\n")
+	}
+	for _, route := range bin.getRoute() {
+		out.Print("/", route.dirName, "\r\n")
+	}
+}
+
 func (bin *BinRouter) View(c *Core) {
 	if c.pri.path == "" || c.pri.path == "/" {
 		if bin.root == nil {
-			c.Error404()
+			bin.error404(c)
 			return
 		}
 		c.RouteDealer(bin.root)
@@ -132,7 +151,7 @@ func (bin *BinRouter) View(c *Core) {
 	})
 
 	if pos == len(routes) || routes[pos].dirName != dirname {
-		c.Error404()
+		bin.error404(c)
 		return
 	}
 

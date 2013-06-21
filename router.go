@@ -138,7 +138,7 @@ func (ro *Router) debug(c *Core) {
 	out := c.Fmt()
 	out.Print("404 Not Found\r\n\r\n")
 	out.Print(c.Req.Host+c.pri.curpath, "\r\n\r\n")
-	out.Print("Rule(s):\r\n")
+	out.Print("RegExp Rule(s):\r\n")
 	for _, route := range ro.getRoutes() {
 		out.Print(route.RegExp, "\r\n")
 	}
