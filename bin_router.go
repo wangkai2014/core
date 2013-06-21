@@ -49,7 +49,7 @@ func (bin *BinRouter) register(dir_ string, handler RouteHandler) {
 	bin.Lock()
 	defer bin.Unlock()
 
-	dir_ = strings.ToLower(strings.TrimSpace(dir_))
+	dir_ = strings.TrimSpace(dir_)
 
 	for _, route := range bin.routes {
 		if route.dirName == dir_ {
@@ -142,7 +142,7 @@ func (bin *BinRouter) View(c *Core) {
 		c.pri.curpath += dirname
 		c.pri.path = c.pri.path[pos:]
 	}
-	dirname = strings.ToLower(dirname)
+	dirname = strings.TrimSpace(dirname)
 
 	routes := bin.getRoute()
 
