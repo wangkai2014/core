@@ -7,7 +7,7 @@ import (
 )
 
 type dirLock struct {
-	route RouteHandler
+	RouteHandler
 }
 
 func (dir dirLock) View(c *Core) {
@@ -15,7 +15,16 @@ func (dir dirLock) View(c *Core) {
 		c.Error404()
 		return
 	}
-	c.RouteDealer(dir.route)
+	c.RouteDealer(dir.RouteHandler)
+}
+
+// Prevent Url Path Locking in BinRouter
+type NoDirLock struct {
+	RouteHandler
+}
+
+func (nod NoDirLock) View(c *Core) {
+	c.RouteDealer(nod.RouteHandler)
 }
 
 type binRoute struct {
@@ -70,6 +79,8 @@ func (bin *BinRouter) register(dir_ string, handler RouteHandler) {
 				route.route = t
 			case *Router:
 				route.route = t
+			case NoDirLock:
+				route.route = t
 			default:
 				route.route = dirLock{handler}
 			}
@@ -81,6 +92,8 @@ func (bin *BinRouter) register(dir_ string, handler RouteHandler) {
 	case *BinRouter:
 		bin.routes = append(bin.routes, &binRoute{dir_, t})
 	case *Router:
+		bin.routes = append(bin.routes, &binRoute{dir_, t})
+	case NoDirLock:
 		bin.routes = append(bin.routes, &binRoute{dir_, t})
 	default:
 		bin.routes = append(bin.routes, &binRoute{dir_, dirLock{handler}})

@@ -200,20 +200,34 @@ func (ro RouteReset) View(c *Core) {
 }
 
 func (c *Core) RouteDealer(ro RouteHandler) {
+	switch t := ro.(type) {
+	case NoDirLock:
+		t.View(c)
+		return
+	case MethodInterface:
+		execMethodInterface(c, t)
+		return
+	case ProtocolInterface:
+		execProtocolInterface(c, t)
+		return
+	case *Router:
+		t.View(c)
+		return
+	case *BinRouter:
+		t.View(c)
+		return
+	case RouteHandlerFunc:
+		t.View(c)
+		return
+	}
+
 	for _, routeAssert := range _getAsserter() {
 		if routeAssert.Assert(c, ro) {
 			return
 		}
 	}
 
-	switch t := ro.(type) {
-	case MethodInterface:
-		execMethodInterface(c, t)
-	case ProtocolInterface:
-		execProtocolInterface(c, t)
-	default:
-		ro.View(c)
-	}
+	ro.View(c)
 }
 
 type RouteAsserter interface {
