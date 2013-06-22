@@ -51,4 +51,9 @@ func TestBinRouter(t *testing.T) {
 	c.pri.curpath = ""
 
 	route.View(c)
+
+	c.pri.path = "/blogpost/example/test"
+	c.pri.curpath = ""
+
+	route.View(c)
 }

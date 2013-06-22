@@ -6,6 +6,18 @@ import (
 	"sync"
 )
 
+type dirLock struct {
+	route RouteHandler
+}
+
+func (dir dirLock) View(c *Core) {
+	if c.pri.path != "" && c.pri.path != "/" {
+		c.Error404()
+		return
+	}
+	c.RouteDealer(dir.route)
+}
+
 type binRoute struct {
 	dirName string
 	route   RouteHandler
@@ -53,12 +65,26 @@ func (bin *BinRouter) register(dir_ string, handler RouteHandler) {
 
 	for _, route := range bin.routes {
 		if route.dirName == dir_ {
-			route.route = handler
+			switch t := handler.(type) {
+			case *BinRouter:
+				route.route = t
+			case *Router:
+				route.route = t
+			default:
+				route.route = dirLock{handler}
+			}
 			return
 		}
 	}
 
-	bin.routes = append(bin.routes, &binRoute{dir_, handler})
+	switch t := handler.(type) {
+	case *BinRouter:
+		bin.routes = append(bin.routes, &binRoute{dir_, t})
+	case *Router:
+		bin.routes = append(bin.routes, &binRoute{dir_, t})
+	default:
+		bin.routes = append(bin.routes, &binRoute{dir_, dirLock{handler}})
+	}
 }
 
 func (bin *BinRouter) sort() {
@@ -155,7 +181,7 @@ func (bin *BinRouter) View(c *Core) {
 		return
 	}
 
-	c.RouteDealer(routes[pos].route)
+	routes[pos].route.View(c)
 }
 
 func SetBinRouteToMainView() {
