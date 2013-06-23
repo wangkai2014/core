@@ -97,7 +97,6 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	c.initSession()
 
 	defer c.recover()
-	defer c.closeCompression()
 
 	mainMiddleware := MainMiddlewares.Init(c)
 	defer func() {
