@@ -33,7 +33,7 @@ type Public struct {
 	Status int
 	// Meta, useful for storing login credentail
 	Context map[string]interface{}
-	// Well same as content, but for string data type only! Useful for storing user country code!
+	// Well same as context, but for string data type only! Useful for storing user country code!
 	ContextStr map[string]string
 	// Used by router for storing data of named group in RegExpRule
 	Group Group
