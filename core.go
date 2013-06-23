@@ -100,7 +100,13 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	defer c.closeCompression()
 
 	mainMiddleware := MainMiddlewares.Init(c)
-	defer mainMiddleware.Post()
+	defer func() {
+		defer c.recover()
+		mainMiddleware.Post()
+		if !c.CutOut() {
+			panic(ErrorStr("No Output was sent to Client!"))
+		}
+	}()
 
 	c.debugStart()
 	defer c.debugEnd()
@@ -122,8 +128,6 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	if c.CutOut() {
 		return
 	}
-
-	panic(ErrorStr("No Output was sent to Client!"))
 }
 
 // Header returns the header map that will be sent by WriteHeader.
