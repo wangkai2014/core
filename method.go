@@ -155,7 +155,7 @@ type MethodInterface interface {
 }
 
 type Method struct {
-	C *Core
+	C *Core `json:"-" xml:"-"`
 }
 
 func (me *Method) View(c *Core) {

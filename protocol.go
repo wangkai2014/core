@@ -34,7 +34,7 @@ type ProtocolInterface interface {
 }
 
 type Protocol struct {
-	C *Core
+	C *Core `json:"-" xml:"-"`
 }
 
 func (pr *Protocol) View(c *Core) {
