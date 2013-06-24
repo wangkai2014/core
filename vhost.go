@@ -38,14 +38,6 @@ func (v *VHost) Register(hosts Map) *VHost {
 	return v
 }
 
-func (v *VHost) getHosts() []*vHost {
-	v.RLock()
-	defer v.RUnlock()
-	hosts := []*vHost{}
-	hosts = append(hosts, v.hosts...)
-	return hosts
-}
-
 func (v *VHost) View(c *Core) {
 	curHostName := c.Req.Host
 	if host, _, err := net.SplitHostPort(curHostName); err == nil {
@@ -53,18 +45,18 @@ func (v *VHost) View(c *Core) {
 	}
 	curHostName = strings.ToLower(curHostName)
 
-	hosts := v.getHosts()
+	hosts_len := len(v.hosts)
 
-	pos := sort.Search(len(hosts), func(i int) bool {
-		return strings.ToLower(hosts[i].name) >= curHostName
+	pos := sort.Search(hosts_len, func(i int) bool {
+		return strings.ToLower(v.hosts[i].name) >= curHostName
 	})
 
-	if pos == len(hosts) || strings.ToLower(hosts[pos].name) != curHostName {
+	if pos == hosts_len || strings.ToLower(v.hosts[pos].name) != curHostName {
 		c.Error404()
 		return
 	}
 
-	c.RouteDealer(hosts[pos].route)
+	c.RouteDealer(v.hosts[pos].route)
 	return
 }
 
@@ -97,14 +89,6 @@ type VHostRegExp struct {
 // Construct VHostRegExp
 func NewVHostRegExp() *VHostRegExp {
 	return &VHostRegExp{}
-}
-
-func (vh *VHostRegExp) getHosts() vHostRegs {
-	vh.RLock()
-	defer vh.RUnlock()
-	hosts := vHostRegs{}
-	hosts = append(hosts, vh.vhost...)
-	return hosts
 }
 
 func (vh *VHostRegExp) register(RegExpRule string, routeHandler RouteHandler) {
@@ -140,7 +124,7 @@ func (vh *VHostRegExp) Register(hostmap Map) *VHostRegExp {
 }
 
 func (vh *VHostRegExp) View(c *Core) {
-	for _, host := range vh.getHosts() {
+	for _, host := range vh.vhost {
 		if !host.RegExpComplied.MatchString(c.Req.Host) {
 			continue
 		}

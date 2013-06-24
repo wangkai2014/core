@@ -106,12 +106,6 @@ func (bin *BinRouter) sort() {
 	sort.Sort(bin.routes)
 }
 
-func (bin *BinRouter) getRoute() binRoutes {
-	bin.Lock()
-	defer bin.Unlock()
-	return append(binRoutes{}, bin.routes...)
-}
-
 func (bin *BinRouter) Register(dir string, handler RouteHandler) *BinRouter {
 	bin.register(dir, handler)
 	bin.sort()
@@ -152,7 +146,7 @@ func (bin *BinRouter) error404(c *Core) {
 	if bin.root != nil {
 		out.Print("/\r\n")
 	}
-	for _, route := range bin.getRoute() {
+	for _, route := range bin.routes {
 		out.Print("/", route.dirName, "\r\n")
 	}
 }
@@ -183,18 +177,18 @@ func (bin *BinRouter) View(c *Core) {
 	}
 	dirname = strings.TrimSpace(dirname)
 
-	routes := bin.getRoute()
+	routes_len := len(bin.routes)
 
-	pos = sort.Search(len(routes), func(i int) bool {
-		return routes[i].dirName >= dirname
+	pos = sort.Search(routes_len, func(i int) bool {
+		return bin.routes[i].dirName >= dirname
 	})
 
-	if pos == len(routes) || routes[pos].dirName != dirname {
+	if pos == routes_len || bin.routes[pos].dirName != dirname {
 		bin.error404(c)
 		return
 	}
 
-	routes[pos].route.View(c)
+	bin.routes[pos].route.View(c)
 }
 
 func SetBinRouteToMainView() {

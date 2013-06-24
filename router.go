@@ -47,14 +47,6 @@ func NewRouter() *Router {
 	return &Router{}
 }
 
-func (ro *Router) getRoutes() routes {
-	ro.RLock()
-	defer ro.RUnlock()
-	route := routes{}
-	route = append(route, ro.routes...)
-	return route
-}
-
 func (ro *Router) register(RegExpRule string, handler RouteHandler) {
 	ro.Lock()
 	defer ro.Unlock()
@@ -120,7 +112,7 @@ func (ro *Router) load(c *Core, reset bool) bool {
 		c.pri.curpath = ""
 	}
 
-	for _, route := range ro.getRoutes() {
+	for _, route := range ro.routes {
 		if !route.RegExpComplied.MatchString(c.pri.path) {
 			continue
 		}
@@ -139,7 +131,7 @@ func (ro *Router) debug(c *Core) {
 	out.Print("404 Not Found\r\n\r\n")
 	out.Print(c.Req.Host+c.pri.curpath, "\r\n\r\n")
 	out.Print("RegExp Rule(s):\r\n")
-	for _, route := range ro.getRoutes() {
+	for _, route := range ro.routes {
 		out.Print(route.RegExp, "\r\n")
 	}
 }
