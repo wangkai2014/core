@@ -79,7 +79,13 @@ func autoPopulateFieldByContext(c *Core, field reflect.Value, name string) {
 }
 
 func execMethodInterface(c *Core, me MethodInterface) {
-	vc := reflect.New(reflect.Indirect(reflect.ValueOf(me)).Type())
+	t := me.getType()
+	if t == nil {
+		t = reflect.Indirect(reflect.ValueOf(me)).Type()
+		me.setType(t)
+	}
+
+	vc := reflect.New(t)
 
 	view := vc.MethodByName("View")
 	in := make([]reflect.Value, 1)
@@ -150,12 +156,15 @@ type MethodInterface interface {
 	Patch()
 	Options()
 	Finish()
+	getType() reflect.Type
+	setType(reflect.Type)
 
 	ASN_Core_0001() // Assert Serial Number
 }
 
 type Method struct {
-	C *Core `json:"-" xml:"-"`
+	C  *Core `json:"-" xml:"-"`
+	_t reflect.Type
 }
 
 func (me *Method) View(c *Core) {
@@ -200,6 +209,14 @@ func (me *Method) Options() {
 
 func (me *Method) Finish() {
 	// Do nothing
+}
+
+func (me *Method) getType() reflect.Type {
+	return me._t
+}
+
+func (me *Method) setType(t reflect.Type) {
+	me._t = t
 }
 
 // Assert Serial Number
