@@ -10,7 +10,6 @@ import (
 	"net/http/cgi"
 	"net/http/fcgi"
 	"os"
-	"runtime"
 	"time"
 )
 
@@ -287,9 +286,4 @@ func (de *DebugMiddleware) Html() {
 
 func init() {
 	MainMiddlewares.Register(&DebugMiddleware{})
-}
-
-// Use Max CPU
-func UseMaxCPU() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
 }

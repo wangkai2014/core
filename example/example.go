@@ -29,6 +29,5 @@ func init() {
 }
 
 func main() {
-	core.UseMaxCPU()
 	core.Check(core.StartHttp(":8080"))
 }

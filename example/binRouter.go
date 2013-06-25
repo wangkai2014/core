@@ -25,7 +25,6 @@ func init() {
 }
 
 func main() {
-	core.UseMaxCPU()
 	core.SetBinRouteToMainView()
 	core.Check(core.StartHttp(":8080"))
 }

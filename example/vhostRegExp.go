@@ -15,7 +15,6 @@ func init() {
 }
 
 func main() {
-	core.UseMaxCPU()
 	core.SetVHostsRegExpToMainView()
 	core.Check(core.StartHttp(":8080"))
 }
