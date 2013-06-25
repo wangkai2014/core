@@ -47,6 +47,8 @@ type Public struct {
 	TimeLoc *time.Location
 	// Time Format
 	TimeFormat string
+	// BinRouter Path Dump
+	BinPathDump []string
 }
 
 // The Framework Structure, it's implement the interfaces of 'net/http.ResponseWriter',
@@ -66,14 +68,15 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		rw:  res.(rw),
 		Req: req,
 		Pub: Public{
-			Status:     http.StatusOK,
-			Context:    map[string]interface{}{},
-			ContextStr: map[string]string{},
-			Group:      Group{},
-			HtmlFunc:   html.FuncMap{},
-			Session:    nil,
-			TimeLoc:    DefaultTimeLoc,
-			TimeFormat: DefaultTimeFormat.String(),
+			Status:      http.StatusOK,
+			Context:     map[string]interface{}{},
+			ContextStr:  map[string]string{},
+			Group:       Group{},
+			HtmlFunc:    html.FuncMap{},
+			Session:     nil,
+			TimeLoc:     DefaultTimeLoc,
+			TimeFormat:  DefaultTimeFormat.String(),
+			BinPathDump: []string{},
 			Errors: Errors{
 				E403: Error403,
 				E404: Error404,

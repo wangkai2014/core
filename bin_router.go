@@ -49,8 +49,9 @@ func (bin binRoutes) Swap(i, j int) {
 // Binary Search Router!
 type BinRouter struct {
 	sync.Mutex
-	routes binRoutes
-	root   RouteHandler
+	routes   binRoutes
+	root     RouteHandler
+	asterisk RouteHandler
 }
 
 func NewBinRouter() *BinRouter {
@@ -62,8 +63,36 @@ func (bin *BinRouter) RootDir(handler RouteHandler) *BinRouter {
 	return bin
 }
 
+// Alias of RootDir
+func (bin *BinRouter) Root(handler RouteHandler) *BinRouter {
+	return bin.RootDir(handler)
+}
+
 func (bin *BinRouter) RootDirFunc(Func RouteHandlerFunc) *BinRouter {
 	return bin.RootDir(Func)
+}
+
+// Alais of RootDirFunc
+func (bin *BinRouter) RootFunc(Func RouteHandlerFunc) *BinRouter {
+	return bin.RootDir(Func)
+}
+
+func (bin *BinRouter) Asterisk(handler RouteHandler) *BinRouter {
+	switch t := handler.(type) {
+	case *BinRouter:
+		bin.asterisk = t
+	case *Router:
+		bin.asterisk = t
+	case NoDirLock:
+		bin.asterisk = t
+	default:
+		bin.asterisk = dirLock{handler}
+	}
+	return bin
+}
+
+func (bin *BinRouter) AsteriskFunc(Func RouteHandlerFunc) *BinRouter {
+	return bin.Asterisk(Func)
 }
 
 func (bin *BinRouter) register(dir_ string, handler RouteHandler) {
@@ -175,6 +204,9 @@ func (bin *BinRouter) View(c *Core) {
 		c.pri.curpath += dirname
 		c.pri.path = c.pri.path[pos:]
 	}
+
+	c.Pub.BinPathDump = append(c.Pub.BinPathDump, dirname)
+
 	dirname = strings.TrimSpace(dirname)
 
 	routes_len := len(bin.routes)
@@ -184,6 +216,10 @@ func (bin *BinRouter) View(c *Core) {
 	})
 
 	if pos == routes_len || bin.routes[pos].dirName != dirname {
+		if bin.asterisk != nil {
+			bin.asterisk.View(c)
+			return
+		}
 		bin.error404(c)
 		return
 	}
