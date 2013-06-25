@@ -56,11 +56,7 @@ func (c *Core) initTrueRemoteAddr() {
 	}
 
 	if address != "" {
-		address = strings.Trim(address, "[]")
-		if len(net.ParseIP(address)) == net.IPv6len {
-			address = "[" + address + "]"
-		}
-		c.Req.RemoteAddr = address + ":1234"
+		c.Req.RemoteAddr = net.JoinHostPort(strings.Trim(address, "[]"), "1234")
 	}
 }
 
