@@ -11,11 +11,14 @@ type MiddlewareInterface interface {
 	Html()
 	Pre()
 	Post()
+	getType() reflect.Type
+	setType(reflect.Type)
 }
 
 // Implement MiddlewareInterface
 type Middleware struct {
-	C *Core
+	C  *Core
+	_t reflect.Type
 }
 
 // Init
@@ -36,6 +39,14 @@ func (mid *Middleware) Pre() {
 // Post boot
 func (mid *Middleware) Post() {
 	// Do nothing
+}
+
+func (mid *Middleware) getType() reflect.Type {
+	return mid._t
+}
+
+func (mid *Middleware) setType(t reflect.Type) {
+	mid._t = t
 }
 
 type Middlewares struct {
@@ -76,8 +87,13 @@ func (mid *Middlewares) Init(c *Core) *Middlewares {
 	middlewares := NewMiddlewares()
 	middlewares.c = c
 	for _, middleware := range mid.getItems() {
-		newmiddleware := reflect.New(
-			reflect.Indirect(reflect.ValueOf(middleware)).Type()).Interface().(MiddlewareInterface)
+		t := middleware.getType()
+		if t == nil {
+			t = reflect.Indirect(reflect.ValueOf(middleware)).Type()
+			middleware.setType(t)
+		}
+
+		newmiddleware := reflect.New(t).Interface().(MiddlewareInterface)
 		newmiddleware.Init(c)
 		middlewares.Register(newmiddleware)
 	}
