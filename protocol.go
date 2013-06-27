@@ -38,7 +38,7 @@ type ProtocolInterface interface {
 	getType() reflect.Type
 	setType(reflect.Type)
 
-	ASN_Core_0002() // Assert Serial Number
+	asn_Core_0002() // Assert Serial Number
 }
 
 type Protocol struct {
@@ -67,6 +67,6 @@ func (pr *Protocol) setType(t reflect.Type) {
 }
 
 // Assert Serial Number
-func (pr *Protocol) ASN_Core_0002() {
+func (pr *Protocol) asn_Core_0002() {
 	// Do nothing
 }

@@ -11,6 +11,6 @@ package core
 
 /*
 	Assert Serial Numbers
-	ASN_Core_0001 : Method
-	ASN_Core_0002 : Protocol
+	asn_Core_0001 : Method
+	asn_Core_0002 : Protocol
 */

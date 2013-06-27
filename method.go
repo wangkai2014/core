@@ -159,7 +159,7 @@ type MethodInterface interface {
 	getType() reflect.Type
 	setType(reflect.Type)
 
-	ASN_Core_0001() // Assert Serial Number
+	asn_Core_0001() // Assert Serial Number
 }
 
 type Method struct {
@@ -220,6 +220,6 @@ func (me *Method) setType(t reflect.Type) {
 }
 
 // Assert Serial Number
-func (me *Method) ASN_Core_0001() {
+func (me *Method) asn_Core_0001() {
 	// Do nothing
 }
