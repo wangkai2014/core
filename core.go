@@ -104,7 +104,7 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	defer func() {
 		defer c.recover()
 		mainMiddleware.Post()
-		if !c.CutOut() {
+		if !c.CutOut() && c.Req.Method != "HEAD" {
 			panic(ErrorStr("No Output was sent to Client!"))
 		}
 	}()
@@ -125,10 +125,6 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	}
 
 	c.RouteDealer(MainView)
-
-	if c.CutOut() {
-		return
-	}
 }
 
 // Header returns the header map that will be sent by WriteHeader.
@@ -269,6 +265,7 @@ func StartCGI() error {
 	return cgi.Serve(http.HandlerFunc(nonsecure))
 }
 
+// Debug Middleware, Add HTML Function to template!
 type DebugMiddleware struct {
 	Middleware
 }
