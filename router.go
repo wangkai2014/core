@@ -217,6 +217,9 @@ func (c *Core) RouteDealer(ro RouteHandler) {
 	case *VHostRegExp:
 		t.View(c)
 		return
+	case HttpRouteHandler:
+		t.View(c)
+		return
 	}
 
 	for _, routeAssert := range _getAsserter() {
