@@ -30,7 +30,7 @@ type private struct {
 type Public struct {
 	// Error Code
 	Status int
-	// Meta, useful for storing login credentail
+	// Context, useful for storing login credentail
 	Context map[string]interface{}
 	// Well same as context, but for string data type only! Useful for storing user country code!
 	ContextStr map[string]string
