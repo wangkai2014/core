@@ -98,16 +98,15 @@ func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	c.initSecure()
 	c.initSession()
 
-	defer c.recover()
-
 	mainMiddleware := MainMiddlewares.Init(c)
 	defer func() {
-		defer c.recover()
 		mainMiddleware.Post()
 		if !c.CutOut() && c.Req.Method != "HEAD" {
 			panic(ErrorStr("No Output was sent to Client!"))
 		}
 	}()
+
+	defer c.recover()
 
 	c.debugStart()
 	defer c.debugEnd()
