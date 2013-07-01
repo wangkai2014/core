@@ -200,6 +200,10 @@ func (c *Core) CutOut() bool {
 	return c.pri.cut
 }
 
+func (c *Core) Cut() {
+	c.pri.cut = true
+}
+
 func (c *Core) debuginfo(a string) {
 	if !DEBUG {
 		return
