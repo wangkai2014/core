@@ -2,6 +2,7 @@ package core
 
 import (
 	"reflect"
+	"sort"
 	"sync"
 )
 
@@ -11,6 +12,7 @@ type MiddlewareInterface interface {
 	Html()
 	Pre()
 	Post()
+	Priority() int
 	getType() reflect.Type
 	setType(reflect.Type)
 }
@@ -42,6 +44,11 @@ func (mid *Middleware) Post() {
 	// Do nothing
 }
 
+// Priority
+func (mid *Middleware) Priority() int {
+	return 10
+}
+
 func (mid *Middleware) getType() reflect.Type {
 	mid._s.RLock()
 	defer mid._s.RUnlock()
@@ -54,9 +61,23 @@ func (mid *Middleware) setType(t reflect.Type) {
 	mid._t = t
 }
 
+type _middlewares []MiddlewareInterface
+
+func (mid _middlewares) Len() int {
+	return len(mid)
+}
+
+func (mid _middlewares) Less(i, j int) bool {
+	return mid[i].Priority() < mid[j].Priority()
+}
+
+func (mid _middlewares) Swap(i, j int) {
+	mid[i], mid[j] = mid[j], mid[i]
+}
+
 type Middlewares struct {
 	sync.Mutex
-	items []MiddlewareInterface
+	items _middlewares
 	c     *Core
 }
 
@@ -72,16 +93,11 @@ func (mid *Middlewares) Register(middlewares ...MiddlewareInterface) *Middleware
 		defer mid.Unlock()
 	}
 	if mid.items == nil {
-		mid.items = []MiddlewareInterface{}
+		mid.items = _middlewares{}
 	}
 	mid.items = append(mid.items, middlewares...)
+	sort.Sort(mid.items)
 	return mid
-}
-
-func (mid *Middlewares) getItems() []MiddlewareInterface {
-	mid.Lock()
-	defer mid.Unlock()
-	return append([]MiddlewareInterface{}, mid.items...)
 }
 
 // Init Middlewares, return initialised structure.
@@ -90,8 +106,9 @@ func (mid *Middlewares) Init(c *Core) *Middlewares {
 		return mid
 	}
 	middlewares := NewMiddlewares()
+	middlewares.items = _middlewares{}
 	middlewares.c = c
-	for _, middleware := range mid.getItems() {
+	for _, middleware := range mid.items {
 		t := middleware.getType()
 		if t == nil {
 			t = reflect.Indirect(reflect.ValueOf(middleware)).Type()
@@ -100,7 +117,7 @@ func (mid *Middlewares) Init(c *Core) *Middlewares {
 
 		newmiddleware := reflect.New(t).Interface().(MiddlewareInterface)
 		newmiddleware.Init(c)
-		middlewares.Register(newmiddleware)
+		middlewares.items = append(middlewares.items, newmiddleware)
 	}
 	return middlewares
 }
