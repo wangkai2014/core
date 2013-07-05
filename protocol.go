@@ -3,6 +3,7 @@ package core
 import (
 	"reflect"
 	"strings"
+	"sync"
 )
 
 func execProtocolInterface(c *Core, pr ProtocolInterface) {
@@ -44,6 +45,7 @@ type ProtocolInterface interface {
 type Protocol struct {
 	C  *Core `json:"-" xml:"-"`
 	_t reflect.Type
+	_s sync.RWMutex
 }
 
 func (pr *Protocol) View(c *Core) {
@@ -59,10 +61,14 @@ func (pr *Protocol) Https() {
 }
 
 func (pr *Protocol) getType() reflect.Type {
+	pr._s.RLock()
+	defer pr._s.RUnlock()
 	return pr._t
 }
 
 func (pr *Protocol) setType(t reflect.Type) {
+	pr._s.Lock()
+	defer pr._s.Unlock()
 	pr._t = t
 }
 

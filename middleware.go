@@ -19,6 +19,7 @@ type MiddlewareInterface interface {
 type Middleware struct {
 	C  *Core
 	_t reflect.Type
+	_s sync.RWMutex
 }
 
 // Init
@@ -42,10 +43,14 @@ func (mid *Middleware) Post() {
 }
 
 func (mid *Middleware) getType() reflect.Type {
+	mid._s.RLock()
+	defer mid._s.RUnlock()
 	return mid._t
 }
 
 func (mid *Middleware) setType(t reflect.Type) {
+	mid._s.Lock()
+	defer mid._s.Unlock()
 	mid._t = t
 }
 

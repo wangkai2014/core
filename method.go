@@ -3,6 +3,7 @@ package core
 import (
 	"reflect"
 	"strings"
+	"sync"
 )
 
 type AutoPopulateFields []string
@@ -165,6 +166,7 @@ type MethodInterface interface {
 type Method struct {
 	C  *Core `json:"-" xml:"-"`
 	_t reflect.Type
+	_s sync.RWMutex
 }
 
 func (me *Method) View(c *Core) {
@@ -212,10 +214,14 @@ func (me *Method) Finish() {
 }
 
 func (me *Method) getType() reflect.Type {
+	me._s.RLock()
+	defer me._s.RUnlock()
 	return me._t
 }
 
 func (me *Method) setType(t reflect.Type) {
+	me._s.Lock()
+	defer me._s.Unlock()
 	me._t = t
 }
 
