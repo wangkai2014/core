@@ -25,7 +25,7 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 	tag := ""
 
 	p := func(v interface{}) interface{} {
-		if tag != "positive" {
+		if tag != "positive" || c.CutOut() {
 			return v
 		}
 
