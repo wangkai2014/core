@@ -22,9 +22,43 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 	s := vc.Elem()
 	typeOfT := s.Type()
 	group := mustGroup(c.Pub.Group)
+	tag := ""
+
+	p := func(v interface{}) interface{} {
+		if tag != "positive" {
+			return v
+		}
+
+		negative := false
+
+		switch t := v.(type) {
+		case int:
+			negative = t < 0
+		case int64:
+			negative = t < 0
+		case int32:
+			negative = t < 0
+		case int16:
+			negative = t < 0
+		case int8:
+			negative = t < 0
+		case float32:
+			negative = t < 0
+		case float64:
+			negative = t < 0
+		}
+
+		if negative {
+			c.Error404()
+		}
+
+		return v
+	}
+
 	for i := 0; i < s.NumField(); i++ {
 		field := s.Field(i)
 		name := typeOfT.Field(i).Name
+		tag = typeOfT.Field(i).Tag.Get("auto")
 		if au.check(name) || !field.CanSet() {
 			continue
 		}
@@ -36,15 +70,15 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 		case string:
 			field.Set(reflect.ValueOf(group.Get(name)))
 		case int:
-			field.Set(reflect.ValueOf(group.GetInt(name, c)))
+			field.Set(reflect.ValueOf(p(group.GetInt(name, c))))
 		case int64:
-			field.Set(reflect.ValueOf(group.GetInt64(name, c)))
+			field.Set(reflect.ValueOf(p(group.GetInt64(name, c))))
 		case int32:
-			field.Set(reflect.ValueOf(group.GetInt32(name, c)))
+			field.Set(reflect.ValueOf(p(group.GetInt32(name, c))))
 		case int16:
-			field.Set(reflect.ValueOf(group.GetInt16(name, c)))
+			field.Set(reflect.ValueOf(p(group.GetInt16(name, c))))
 		case int8:
-			field.Set(reflect.ValueOf(group.GetInt8(name, c)))
+			field.Set(reflect.ValueOf(p(group.GetInt8(name, c))))
 		case uint:
 			field.Set(reflect.ValueOf(group.GetUint(name, c)))
 		case uint64:
@@ -56,9 +90,9 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 		case uint8:
 			field.Set(reflect.ValueOf(group.GetUint8(name, c)))
 		case float32:
-			field.Set(reflect.ValueOf(group.GetFloat32(name, c)))
+			field.Set(reflect.ValueOf(p(group.GetFloat32(name, c))))
 		case float64:
-			field.Set(reflect.ValueOf(group.GetFloat64(name, c)))
+			field.Set(reflect.ValueOf(p(group.GetFloat64(name, c))))
 		default:
 			autoPopulateFieldByContext(c, field, name)
 		}
