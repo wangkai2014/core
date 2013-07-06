@@ -81,6 +81,81 @@ func (pa Group) GetFloat32(name string) float32 {
 	return float32(pa.GetFloat64(name))
 }
 
+type mustGroup map[string]string
+
+func (pa mustGroup) Get(name string) string {
+	return pa[name]
+}
+
+func (pa mustGroup) GetInt64(name string, c *Core) int64 {
+	num := int64(0)
+	var err error
+	num, err = toInt(pa[name])
+	if err != nil {
+		c.Error404()
+		return 0
+	}
+	return num
+}
+
+func (pa mustGroup) GetInt(name string, c *Core) int {
+	return int(pa.GetInt64(name, c))
+}
+
+func (pa mustGroup) GetInt32(name string, c *Core) int32 {
+	return int32(pa.GetInt64(name, c))
+}
+
+func (pa mustGroup) GetInt16(name string, c *Core) int16 {
+	return int16(pa.GetInt64(name, c))
+}
+
+func (pa mustGroup) GetInt8(name string, c *Core) int8 {
+	return int8(pa.GetInt64(name, c))
+}
+
+func (pa mustGroup) GetUint64(name string, c *Core) uint64 {
+	num := uint64(0)
+	var err error
+	num, err = toUint(pa[name])
+	if err != nil {
+		c.Error404()
+		return 0
+	}
+	return num
+}
+
+func (pa mustGroup) GetUint(name string, c *Core) uint {
+	return uint(pa.GetUint64(name, c))
+}
+
+func (pa mustGroup) GetUint32(name string, c *Core) uint32 {
+	return uint32(pa.GetUint64(name, c))
+}
+
+func (pa mustGroup) GetUint16(name string, c *Core) uint16 {
+	return uint16(pa.GetUint64(name, c))
+}
+
+func (pa mustGroup) GetUint8(name string, c *Core) uint8 {
+	return uint8(pa.GetUint64(name, c))
+}
+
+func (pa mustGroup) GetFloat64(name string, c *Core) float64 {
+	num := float64(0)
+	var err error
+	num, err = toFloat(pa[name])
+	if err != nil {
+		c.Error404()
+		return float64(0)
+	}
+	return num
+}
+
+func (pa mustGroup) GetFloat32(name string, c *Core) float32 {
+	return float32(pa.GetFloat64(name, c))
+}
+
 type pathStr string
 
 func (str pathStr) String() string {

@@ -52,6 +52,7 @@ type BinRouter struct {
 	routes   binRoutes
 	root     RouteHandler
 	asterisk RouteHandler
+	group    string
 }
 
 func NewBinRouter() *BinRouter {
@@ -75,6 +76,11 @@ func (bin *BinRouter) RootDirFunc(Func RouteHandlerFunc) *BinRouter {
 // Alais of RootDirFunc
 func (bin *BinRouter) RootFunc(Func RouteHandlerFunc) *BinRouter {
 	return bin.RootDir(Func)
+}
+
+func (bin *BinRouter) Group(group string) *BinRouter {
+	bin.group = group
+	return bin
 }
 
 func (bin *BinRouter) Asterisk(handler RouteHandler) *BinRouter {
@@ -206,6 +212,10 @@ func (bin *BinRouter) View(c *Core) {
 	}
 
 	c.Pub.BinPathDump = append(c.Pub.BinPathDump, dirname)
+
+	if bin.group != "" {
+		c.Pub.Group[bin.group] = dirname
+	}
 
 	dirname = strings.TrimSpace(dirname)
 

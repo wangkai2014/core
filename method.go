@@ -6,79 +6,6 @@ import (
 	"sync"
 )
 
-type AutoPopulateFields []string
-
-func (au AutoPopulateFields) check(name string) bool {
-	for _, item := range au {
-		if name == item {
-			return true
-		}
-	}
-	return false
-}
-
-/*
-Populate Struct Field Automatically
-*/
-func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
-	s := vc.Elem()
-	typeOfT := s.Type()
-	for i := 0; i < s.NumField(); i++ {
-		field := s.Field(i)
-		name := typeOfT.Field(i).Name
-		if au.check(name) || !field.CanSet() {
-			continue
-		}
-		if c.Pub.Group.Get(name) == "" {
-			autoPopulateFieldByContext(c, field, name)
-			continue
-		}
-		switch field.Interface().(type) {
-		case string:
-			field.Set(reflect.ValueOf(c.Pub.Group.Get(name)))
-		case int:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetInt(name)))
-		case int64:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetInt64(name)))
-		case int32:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetInt32(name)))
-		case int16:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetInt16(name)))
-		case int8:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetInt8(name)))
-		case uint:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetUint(name)))
-		case uint64:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetUint64(name)))
-		case uint32:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetUint32(name)))
-		case uint16:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetUint16(name)))
-		case uint8:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetUint8(name)))
-		case float32:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetFloat32(name)))
-		case float64:
-			field.Set(reflect.ValueOf(c.Pub.Group.GetFloat64(name)))
-		default:
-			autoPopulateFieldByContext(c, field, name)
-		}
-	}
-}
-
-/*
-Populate Field by Meta
-*/
-func autoPopulateFieldByContext(c *Core, field reflect.Value, name string) {
-	if c.Pub.Context[name] == nil {
-		return
-	}
-	vcc := reflect.ValueOf(c.Pub.Context[name])
-	if field.Kind() == vcc.Kind() {
-		field.Set(vcc)
-	}
-}
-
 func execMethodInterface(c *Core, me MethodInterface) {
 	t := me.getType()
 	if t == nil {
@@ -94,6 +21,10 @@ func execMethodInterface(c *Core, me MethodInterface) {
 	view.Call(in)
 
 	(AutoPopulateFields{"C"}).Do(c, vc)
+
+	if c.CutOut() {
+		return
+	}
 
 	in = make([]reflect.Value, 0)
 	method := vc.MethodByName("Prepare")
