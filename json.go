@@ -40,7 +40,11 @@ func (j Json) NewEncoder(w io.Writer) *json.Encoder {
 
 // Send Json output to client.
 func (j Json) Send(v interface{}) {
-	j.NewEncoder(j.c).Encode(v)
+	w := j.c.Pub.Writers["gzip"]
+	if w == nil {
+		w = j.c
+	}
+	j.NewEncoder(w).Encode(v)
 }
 
 // Decode Request Body
