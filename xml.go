@@ -40,7 +40,11 @@ func (x Xml) NewEncoder(w io.Writer) *xml.Encoder {
 
 // Output in XML
 func (x Xml) Send(v interface{}) {
-	xml.NewEncoder(x.c).Encode(v)
+	w := x.c.Pub.Writers["gzip"]
+	if w == nil {
+		w = x.c
+	}
+	xml.NewEncoder(w).Encode(v)
 }
 
 // Decode Request Body
