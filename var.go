@@ -29,8 +29,9 @@ var (
 	/*
 		Middleware
 	*/
-	MainMiddlewares = NewMiddlewares()
-	AppMiddlewares  = NewMiddlewares()
+	MainMiddlewares   = NewMiddlewares()
+	AppMiddlewares    = NewMiddlewares()
+	MiddlewareEnabled = true
 
 	/*
 		Route

@@ -102,7 +102,7 @@ func (mid *Middlewares) Register(middlewares ...MiddlewareInterface) *Middleware
 
 // Init Middlewares, return initialised structure.
 func (mid *Middlewares) Init(c *Core) *Middlewares {
-	if mid.c != nil {
+	if mid.c != nil || !MiddlewareEnabled {
 		return mid
 	}
 	middlewares := NewMiddlewares()
