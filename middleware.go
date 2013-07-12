@@ -31,7 +31,7 @@ func (mid *Middleware) Init(c *Core) {
 
 // Html
 func (mid *Middleware) Html() {
-
+	// Do nothing
 }
 
 // Pre boot
@@ -149,11 +149,12 @@ func (mid *Middlewares) Pre() {
 }
 
 // Post boot, you may want to use the keyword 'defer'
+// Execute in Reverse unlike Pre().
 func (mid *Middlewares) Post() {
 	if mid.c == nil {
 		return
 	}
-	for _, middleware := range mid.items {
-		middleware.Post()
+	for i := len(mid.items); i > 0; i-- {
+		mid.items[i-1].Post()
 	}
 }
