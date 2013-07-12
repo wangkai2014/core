@@ -187,6 +187,7 @@ func (bin *BinRouter) error404(c *Core) {
 }
 
 func (bin *BinRouter) View(c *Core) {
+	// Check if Root Path
 	if c.pri.path == "" || c.pri.path == "/" {
 		if bin.root == nil {
 			bin.error404(c)
@@ -237,6 +238,7 @@ func (bin *BinRouter) View(c *Core) {
 	bin.routes[pos].route.View(c)
 }
 
+// Set Bin Route To Main View
 func SetBinRouteToMainView() {
 	MainView = RouteHandlerFunc(func(c *Core) {
 		appMiddlewares := AppMiddlewares.Init(c)

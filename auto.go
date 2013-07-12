@@ -2,6 +2,8 @@ package core
 
 import (
 	"reflect"
+	"regexp"
+	"sync"
 )
 
 type AutoPopulateFields []string
@@ -68,7 +70,16 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 		}
 		switch field.Interface().(type) {
 		case string:
-			field.Set(reflect.ValueOf(group.Get(name)))
+			value := group.Get(name)
+			if tag == "" {
+				goto value_of
+			}
+			if !_regExpCache.Get(tag).MatchString(value) {
+				c.Error404()
+				return
+			}
+		value_of:
+			field.Set(reflect.ValueOf(value))
 		case int:
 			field.Set(reflect.ValueOf(p(group.GetInt(name, c))))
 		case int64:
@@ -113,4 +124,24 @@ func autoPopulateFieldByContext(c *Core, field reflect.Value, name string) {
 	if field.Kind() == vcc.Kind() {
 		field.Set(vcc)
 	}
+}
+
+type regExpCacheSystem struct {
+	sync.Mutex
+	res map[string]*regexp.Regexp
+}
+
+func newRegExpCacheSystem() regExpCacheSystem {
+	return regExpCacheSystem{res: map[string]*regexp.Regexp{}}
+}
+
+func (reg regExpCacheSystem) Get(str string) *regexp.Regexp {
+	reg.Lock()
+	defer reg.Unlock()
+	if reg.res[str] != nil {
+		return reg.res[str]
+	}
+	_re := regexp.MustCompile(str)
+	reg.res[str] = _re
+	return _re
 }

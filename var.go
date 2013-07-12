@@ -104,4 +104,6 @@ var (
 		sync.RWMutex
 		ro []RouteAsserter
 	}{ro: []RouteAsserter{}}
+
+	_regExpCache = newRegExpCacheSystem()
 )
