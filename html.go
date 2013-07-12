@@ -53,18 +53,18 @@ func (c *Core) Html() Html {
 	return Html{c}
 }
 
-func (h Html) render(htmlstr string, value_map interface{}, buf io.Writer) {
+func (h Html) RenderWriter(htmlstr string, value_map interface{}, w io.Writer) {
 	c := h.c
-	if buf == nil {
+	if w == nil {
 		// To prevent headers from being sent too early.
-		buf = &bytes.Buffer{}
-		defer func(buf *bytes.Buffer) {
-			io.Copy(c, buf)
-			buf.Reset()
-		}(buf.(*bytes.Buffer))
+		w = &bytes.Buffer{}
+		defer func(w *bytes.Buffer) {
+			io.Copy(c, w)
+			w.Reset()
+		}(w.(*bytes.Buffer))
 	}
 	t := html.Must(html.New("html").Funcs(c.Pub.HtmlFunc).Parse(htmlstr))
-	err := t.Execute(buf, value_map)
+	err := t.Execute(w, value_map)
 	c.Check(err)
 }
 
@@ -74,7 +74,7 @@ func (h Html) render(htmlstr string, value_map interface{}, buf io.Writer) {
 func (h Html) Render(htmlstr string, value_map interface{}) string {
 	buf := &bytes.Buffer{}
 	defer buf.Reset()
-	h.render(htmlstr, value_map, buf)
+	h.RenderWriter(htmlstr, value_map, buf)
 	return buf.String()
 }
 
@@ -82,7 +82,7 @@ func (h Html) Render(htmlstr string, value_map interface{}) string {
 //
 // Note: Marksafe functions/filters avaliable are 'html', 'htmlattr', 'js' and 'jsattr'.
 func (h Html) RenderSend(htmlstr string, value_map interface{}) {
-	h.render(htmlstr, value_map, nil)
+	h.RenderWriter(htmlstr, value_map, h.c.Pub.Writers["gzip"])
 }
 
 type htmlFileCacheStruct struct {
@@ -213,6 +213,18 @@ gotoreturn:
 	return h.c.pri.html.template
 }
 
+func (h Html) DefaultRenderWriter(name string, data interface{}, w io.Writer) {
+	if w == nil {
+		b := &bytes.Buffer{}
+		defer func(buf *bytes.Buffer) {
+			io.Copy(h.c, buf)
+			buf.Reset()
+		}(b)
+		w = b
+	}
+	h.Default().ExecuteTemplate(w, name, data)
+}
+
 func (h Html) DefaultRender(name string, data interface{}) string {
 	b := &bytes.Buffer{}
 	defer b.Reset()
@@ -221,10 +233,5 @@ func (h Html) DefaultRender(name string, data interface{}) string {
 }
 
 func (h Html) DefaultRenderSend(name string, data interface{}) {
-	b := &bytes.Buffer{}
-	defer func(buf *bytes.Buffer) {
-		io.Copy(h.c, buf)
-		buf.Reset()
-	}(b)
-	h.Default().ExecuteTemplate(b, name, data)
+	h.DefaultRenderWriter(name, data, h.c.Pub.Writers["gzip"])
 }
