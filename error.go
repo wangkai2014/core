@@ -92,24 +92,28 @@ type Errors struct {
 func (c *Core) Error403() {
 	c.Pub.Status = 403
 	c.Pub.Errors.E403(c)
+	c.Cut()
 }
 
 // Execute Error 404 (Not Found)
 func (c *Core) Error404() {
 	c.Pub.Status = 404
 	c.Pub.Errors.E404(c)
+	c.Cut()
 }
 
 // Execute Error 405 (Method Not Allowed)
 func (c *Core) Error405() {
 	c.Pub.Status = 405
 	c.Pub.Errors.E405(c)
+	c.Cut()
 }
 
 // Execute Error 500 (Internal Server Error)
 func (c *Core) Error500() {
 	c.Pub.Status = 500
 	c.Pub.Errors.E500(c)
+	c.Cut()
 }
 
 // Custom String Data Type, Implement error interface.
