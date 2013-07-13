@@ -124,6 +124,10 @@ return_content:
 	return content
 }
 
+func (h Html) RenderFileWriter(htmlfile string, value_map interface{}, w io.Writer) {
+	h.RenderWriter(h.GetFile(htmlfile), value_map, w)
+}
+
 // Render HTML File
 //
 // Note: Marksafe functions/filters avaliable are 'html', 'htmlattr', 'js' and 'jsattr'.
