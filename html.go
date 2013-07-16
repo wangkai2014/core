@@ -58,10 +58,7 @@ func (h Html) RenderWriter(htmlstr string, value_map interface{}, w io.Writer) {
 	if w == nil {
 		// To prevent headers from being sent too early.
 		w = &bytes.Buffer{}
-		defer func(w *bytes.Buffer) {
-			io.Copy(c, w)
-			w.Reset()
-		}(w.(*bytes.Buffer))
+		defer w.(*bytes.Buffer).WriteTo(c)
 	}
 	t := html.Must(html.New("html").Funcs(c.Pub.HtmlFunc).Parse(htmlstr))
 	err := t.Execute(w, value_map)
@@ -73,8 +70,8 @@ func (h Html) RenderWriter(htmlstr string, value_map interface{}, w io.Writer) {
 // Note: Marksafe functions/filters avaliable are 'html', 'htmlattr', 'js' and 'jsattr'.
 func (h Html) Render(htmlstr string, value_map interface{}) string {
 	buf := &bytes.Buffer{}
-	defer buf.Reset()
 	h.RenderWriter(htmlstr, value_map, buf)
+	defer buf.Reset()
 	return buf.String()
 }
 
@@ -220,10 +217,7 @@ gotoreturn:
 func (h Html) DefaultRenderWriter(name string, data interface{}, w io.Writer) {
 	if w == nil {
 		b := &bytes.Buffer{}
-		defer func(buf *bytes.Buffer) {
-			io.Copy(h.c, buf)
-			buf.Reset()
-		}(b)
+		defer b.WriteTo(h.c)
 		w = b
 	}
 	h.Default().ExecuteTemplate(w, name, data)
