@@ -1,6 +1,6 @@
 package core
 
-func ExampleWeb_Time(c *Core) {
+func ExampleCore_Time(c *Core) {
 	// Get current time
 	curtime := c.Time().Now()
 
