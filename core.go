@@ -346,6 +346,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	if app.SecureHeader != "" {
 		if req.Header.Get(app.SecureHeader) != "" {
 			secure = true
+			req.Header.Del(app.SecureHeader)
 		}
 	}
 
