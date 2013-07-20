@@ -95,10 +95,10 @@ func (h Html) GetFile(htmlfile string) string {
 	var content_in_byte []byte
 	var err error
 
-	htmlFileCache.Lock()
-	defer htmlFileCache.Unlock()
+	h.c.App.htmlFileCacheSync.Lock()
+	defer h.c.App.htmlFileCacheSync.Unlock()
 
-	switch t := htmlFileCache.m[htmlfile].(type) {
+	switch t := h.c.App.htmlFileCache[htmlfile].(type) {
 	case htmlFileCacheStruct:
 		if time.Now().Unix() > t.expire.Unix() {
 			goto getfile_and_cache
@@ -113,8 +113,8 @@ getfile_and_cache:
 		return err.Error()
 	}
 	content = string(content_in_byte)
-	if !DEBUG {
-		htmlFileCache.m[htmlfile] = htmlFileCacheStruct{content, time.Now().Add(HtmlTemplateCacheExpire)}
+	if !h.c.App.Debug {
+		h.c.App.htmlFileCache[htmlfile] = htmlFileCacheStruct{content, time.Now().Add(h.c.App.HtmlTemplateCacheExpire)}
 	}
 
 return_content:
@@ -152,18 +152,18 @@ func (h Html) ParseFiles(filenames ...string) *html.Template {
 }
 
 func (h Html) ParseGlob(pattern string) *html.Template {
-	htmlGlobLocker.Lock()
-	defer htmlGlobLocker.Unlock()
+	h.c.App.htmlGlobLockerSync.Lock()
+	defer h.c.App.htmlGlobLockerSync.Unlock()
 
-	if len(htmlGlobLocker.filenames[pattern]) > 0 {
-		return h.ParseFiles(htmlGlobLocker.filenames[pattern]...)
+	if len(h.c.App.htmlGlobLocker[pattern]) > 0 {
+		return h.ParseFiles(h.c.App.htmlGlobLocker[pattern]...)
 	}
 
 	filenames, err := filepath.Glob(pattern)
 	h.c.Check(err)
 
-	if !DEBUG {
-		htmlGlobLocker.filenames[pattern] = filenames
+	if !h.c.App.Debug {
+		h.c.App.htmlGlobLocker[pattern] = filenames
 	}
 
 	return h.ParseFiles(filenames...)

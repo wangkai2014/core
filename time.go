@@ -5,9 +5,9 @@ import (
 )
 
 // Set Timezone on global level
-func SetTimeZone(zone string) {
+func (app *App) SetTimeZone(zone string) {
 	var err error
-	DefaultTimeLoc, err = time.LoadLocation(zone)
+	app.TimeLoc, err = time.LoadLocation(zone)
 	Check(err)
 }
 
@@ -61,10 +61,4 @@ func (t *TimeMiddleware) Html() {
 		}
 		return clock.Format(format)
 	}
-}
-
-func init() {
-	DefaultTimeLoc, _ = time.LoadLocation("Local")
-
-	MainMiddlewares.Register(&TimeMiddleware{})
 }

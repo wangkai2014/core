@@ -24,8 +24,8 @@ func (ses *session) getExpire() time.Time {
 }
 
 // Reset Expiry Time to 20 minutes in advanced!
-func (ses *session) hit() {
-	ses.Expire = time.Now().Add(SessionExpire)
+func (ses *session) hit(c *Core) {
+	ses.Expire = time.Now().Add(c.App.SessionExpire)
 }
 
 // Session interface
@@ -34,7 +34,7 @@ func (ses *session) hit() {
 type sessionInterface interface {
 	getData() interface{}
 	getExpire() time.Time
-	hit()
+	hit(*Core)
 }
 
 var sessionMap = struct {
@@ -52,15 +52,15 @@ type SessionHandler interface {
 type SessionMemory struct{}
 
 func (_ SessionMemory) Set(c *Core, data interface{}) {
-	sessionMap.Lock()
-	defer sessionMap.Unlock()
+	c.App.sessionMapSync.Lock()
+	defer c.App.sessionMapSync.Unlock()
 
-	if !sessionExpiryCheckActive {
-		sessionExpiryCheckActive = true
-		go sessionExpiryCheck()
+	if !c.App.sessionExpireCheckActive {
+		c.App.sessionExpireCheckActive = true
+		go c.App.sessionExpiryCheck()
 	}
 
-	sessionCookieName := SessionCookieName.String()
+	sessionCookieName := c.App.SessionCookieName.String()
 
 	sesCookie, err := c.Cookie(sessionCookieName).Get()
 
@@ -68,7 +68,7 @@ func (_ SessionMemory) Set(c *Core, data interface{}) {
 		sesCookie, _ = c.Cookie(sessionCookieName).Value(KeyGen()).SaveRes().Get()
 	}
 
-	sessionMap.m[sesCookie.Value] = &session{data, time.Now().Add(SessionExpire)}
+	c.App.sessionMap[sesCookie.Value] = &session{data, time.Now().Add(c.App.SessionExpire)}
 }
 
 func deleteSessionFromMap(key string) {
@@ -76,10 +76,10 @@ func deleteSessionFromMap(key string) {
 }
 
 func (_ SessionMemory) Init(c *Core) {
-	sessionMap.Lock()
-	defer sessionMap.Unlock()
+	c.App.sessionMapSync.Lock()
+	defer c.App.sessionMapSync.Unlock()
 
-	sesCookie, err := c.Cookie(SessionCookieName.String()).Get()
+	sesCookie, err := c.Cookie(c.App.SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}
@@ -87,7 +87,7 @@ func (_ SessionMemory) Init(c *Core) {
 	if t, ok := sessionMap.m[sesCookie.Value].(*session); ok {
 		if time.Now().Unix() < t.getExpire().Unix() {
 			c.Pub.Session = t.getData()
-			t.hit()
+			t.hit(c)
 			return
 		}
 	}
@@ -100,7 +100,7 @@ func (_ SessionMemory) Destroy(c *Core) {
 	sessionMap.Lock()
 	defer sessionMap.Unlock()
 
-	sesCookie, err := c.Cookie(SessionCookieName.String()).Get()
+	sesCookie, err := c.Cookie(c.App.SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}
@@ -120,7 +120,7 @@ type SessionFile struct {
 }
 
 func (se SessionFile) Set(c *Core, data interface{}) {
-	sessionCookieName := SessionCookieName.String()
+	sessionCookieName := c.App.SessionCookieName.String()
 	sesCookie, err := c.Cookie(sessionCookieName).Get()
 
 	if err != nil {
@@ -132,14 +132,14 @@ func (se SessionFile) Set(c *Core, data interface{}) {
 
 	defer file.Close()
 	enc := gob.NewEncoder(file)
-	err = enc.Encode(&session{data, time.Now().Add(SessionExpire)})
+	err = enc.Encode(&session{data, time.Now().Add(c.App.SessionExpire)})
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (se SessionFile) Init(c *Core) {
-	sesCookie, err := c.Cookie(SessionCookieName.String()).Get()
+	sesCookie, err := c.Cookie(c.App.SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}
@@ -158,7 +158,7 @@ func (se SessionFile) Init(c *Core) {
 
 	if time.Now().Unix() < ses.getExpire().Unix() {
 		c.Pub.Session = ses.getData()
-		ses.hit()
+		ses.hit(c)
 		return
 	}
 
@@ -167,7 +167,7 @@ func (se SessionFile) Init(c *Core) {
 }
 
 func (se SessionFile) Destroy(c *Core) {
-	sesCookie, err := c.Cookie(SessionCookieName.String()).Get()
+	sesCookie, err := c.Cookie(c.App.SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}
@@ -178,7 +178,7 @@ func (se SessionFile) Destroy(c *Core) {
 
 // Init Session
 func (c *Core) initSession() {
-	DefaultSessionHandler.Init(c)
+	c.App.SessionHandler.Init(c)
 }
 
 type Session struct {
@@ -196,33 +196,33 @@ func (s Session) Get() interface{} {
 
 // Set Session
 func (s Session) Set(data interface{}) {
-	DefaultSessionHandler.Set(s.c, data)
+	s.c.App.SessionHandler.Set(s.c, data)
 }
 
 // Destroy Session
 func (s Session) Destroy() {
-	DefaultSessionHandler.Destroy(s.c)
+	s.c.App.SessionHandler.Destroy(s.c)
 }
 
 //	Session Expiry Check in a loop
-func sessionExpiryCheck() {
+func (app *App) sessionExpiryCheck() {
 	for {
-		time.Sleep(SessionExpiryCheckInterval)
+		time.Sleep(app.SessionExpireCheckInterval)
 		curtime := time.Now()
 
-		sessionMap.Lock()
+		app.sessionMapSync.Lock()
 
-		if len(sessionMap.m) <= 0 {
-			sessionExpiryCheckActive = false
-			sessionMap.Unlock()
+		if len(app.sessionMap) <= 0 {
+			app.sessionExpireCheckActive = false
+			app.sessionMapSync.Unlock()
 			break
 		}
-		for key, value := range sessionMap.m {
+		for key, value := range app.sessionMap {
 			if curtime.Unix() > value.getExpire().Unix() {
-				delete(sessionMap.m, key)
+				delete(app.sessionMap, key)
 			}
 		}
 
-		sessionMap.Unlock()
+		app.sessionMapSync.Unlock()
 	}
 }

@@ -2,7 +2,6 @@ package core
 
 import (
 	"reflect"
-	"strings"
 	"sync"
 )
 
@@ -22,11 +21,11 @@ func execProtocolInterface(c *Core, pr ProtocolInterface) {
 
 	in = make([]reflect.Value, 0)
 
-	switch strings.ToLower(strings.Split(c.Req.Proto, "/")[0]) {
-	case "http":
+	switch c.pri.secure {
+	case false:
 		method := vc.MethodByName("Http")
 		method.Call(in)
-	case "shttp", "https":
+	case true:
 		method := vc.MethodByName("Https")
 		method.Call(in)
 	}

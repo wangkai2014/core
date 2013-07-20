@@ -18,6 +18,7 @@ func (mid *MiddlewareDummy) Post() {
 
 func TestMiddleware(t *testing.T) {
 	c := &Core{
+		App: NewApp(),
 		Pub: Public{
 			Group: Group{},
 		},

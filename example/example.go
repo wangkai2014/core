@@ -4,6 +4,8 @@ import (
 	"github.com/gorail/core"
 )
 
+var app = core.NewApp()
+
 type Index struct {
 	core.Method
 	Id int64
@@ -22,12 +24,12 @@ func (in *Index) Get() {
 }
 
 func init() {
-	core.Route.RegisterMap(core.Map{
+	app.Router("main").RegisterMap(core.Map{
 		`^/$`: &Index{},
 		`^/(?P<Id>[0-9-]+)/?$`: &Index{},
 	})
 }
 
 func main() {
-	core.Check(core.StartHttp(":8080"))
+	core.Check(app.Listen(":8080"))
 }

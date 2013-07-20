@@ -4,6 +4,8 @@ import (
 	"github.com/gorail/core"
 )
 
+var app = core.NewApp()
+
 func Index(c *core.Core) {
 	c.Fmt().Print("Index")
 }
@@ -17,14 +19,13 @@ func SubExample(c *core.Core) {
 }
 
 func init() {
-	core.BinRoute.RootDirFunc(Index).RegisterMap(core.Map{
-		"example": core.NewBinRouter().RootDirFunc(Example).RegisterFuncMap(core.FuncMap{
+	app.DefaultRouter = app.BinRouter("main").RootDirFunc(Index).RegisterMap(core.Map{
+		"example": app.BinRouter("example").RootDirFunc(Example).RegisterFuncMap(core.FuncMap{
 			"subexample": SubExample,
 		}),
 	})
 }
 
 func main() {
-	core.SetBinRouteToMainView()
-	core.Check(core.StartHttp(":8080"))
+	core.Check(app.Listen(":8080"))
 }

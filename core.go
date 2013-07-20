@@ -7,9 +7,9 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"net/http/cgi"
 	"net/http/fcgi"
-	"os"
+	//"os"
+	"sync"
 	"time"
 )
 
@@ -25,6 +25,7 @@ type private struct {
 	firstWrite bool
 	html       *htmlDefault
 	session    *SessionAdv
+	secure     bool
 }
 
 type Public struct {
@@ -56,79 +57,13 @@ type Public struct {
 // The Framework Structure, it's implement the interfaces of 'net/http.ResponseWriter',
 // 'net/http.Hijacker', 'net/http.Flusher' and 'net/http.Handler'
 type Core struct {
+	App *App
 	// Request
 	Req *http.Request
 	// Public Variabless
 	Pub Public
 	rw
 	pri private
-}
-
-// HTTP Handler
-func (_ Core) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	c := &Core{
-		rw:  res.(rw),
-		Req: req,
-		Pub: Public{
-			Status:      http.StatusOK,
-			Context:     map[string]interface{}{},
-			ContextStr:  map[string]string{},
-			Group:       Group{},
-			HtmlFunc:    html.FuncMap{},
-			Session:     nil,
-			TimeLoc:     DefaultTimeLoc,
-			TimeFormat:  DefaultTimeFormat.String(),
-			BinPathDump: []string{},
-			Writers:     map[string]io.Writer{},
-			Readers:     map[string]io.Reader{},
-			Errors: Errors{
-				E403: Error403,
-				E404: Error404,
-				E405: Error405,
-				E500: Error500,
-			},
-		},
-		pri: private{
-			path:       req.URL.Path,
-			curpath:    "",
-			cut:        false,
-			firstWrite: true,
-		},
-	}
-
-	c.initWriter()
-	c.initTrueHost()
-	c.initTrueRemoteAddr()
-	c.initTruePath()
-	c.initSecure()
-	c.initSession()
-
-	mainMiddleware := MainMiddlewares.Init(c)
-	defer func() {
-		mainMiddleware.Post()
-		if !c.CutOut() && c.Req.Method != "HEAD" {
-			panic(ErrorStr("No Output was sent to Client!"))
-		}
-	}()
-
-	defer c.recover()
-
-	c.debugStart()
-	defer c.debugEnd()
-
-	mainMiddleware.Html()
-
-	if c.CutOut() {
-		return
-	}
-
-	mainMiddleware.Pre()
-
-	if c.CutOut() {
-		return
-	}
-
-	c.RouteDealer(MainView)
 }
 
 // Header returns the header map that will be sent by WriteHeader.
@@ -209,7 +144,7 @@ func (c *Core) Cut() {
 }
 
 func (c *Core) debuginfo(a string) {
-	if !DEBUG {
+	if !c.App.Debug {
 		return
 	}
 	ErrPrintf("--\r\n %s  %s, %s, %s, %s, ?%s IP:%s \r\n--\r\n",
@@ -226,51 +161,291 @@ func (c *Core) debugEnd() {
 	c.debuginfo("END  ")
 }
 
-var _core = Core{}
+type App struct {
+	Debug              bool
+	debugTlsPortNumber uint16
 
-func secure(res http.ResponseWriter, req *http.Request) {
-	req.Header.Set("X-Secure-Mode", "1")
-	_core.ServeHTTP(res, req)
+	SecureHeader string
+
+	DefaultRouter RouteHandler
+	DefaultView   RouteHandler
+
+	MiddlewareEnabled bool
+	middlewares       map[string]*Middlewares
+	middlewaresSync   sync.Mutex
+
+	routers     map[string]*Router
+	routersSync sync.Mutex
+
+	binRouters     map[string]*BinRouter
+	binRoutersSync sync.Mutex
+
+	vHosts     map[string]*VHost
+	vHostsSync sync.Mutex
+
+	vHostsRegExp     map[string]*VHostRegExp
+	vHostsRegExpSync sync.Mutex
+
+	htmlFileCache           map[string]interface{}
+	htmlFileCacheSync       sync.Mutex
+	htmlGlobLocker          map[string][]string
+	htmlGlobLockerSync      sync.Mutex
+	HtmlTemplateCacheExpire time.Duration
+
+	SessionCookieName          *AtomicString
+	SessionExpire              time.Duration
+	SessionExpireCheckInterval time.Duration
+	sessionExpireCheckActive   bool
+	SessionHandler             SessionHandler
+	sessionMap                 map[string]sessionInterface
+	sessionMapSync             sync.Mutex
+
+	TimeLoc    *time.Location
+	TimeFormat *AtomicString
+
+	URLRev *URLReverse
+
+	Error403 func(c *Core)
+	Error404 func(c *Core)
+	Error405 func(c *Core)
+	Error500 func(c *Core)
+
+	regExpCache regExpCacheSystem
+
+	FormMemoryLimit int64
 }
 
-func nonsecure(res http.ResponseWriter, req *http.Request) {
-	req.Header.Del("X-Secure-Mode")
-	_core.ServeHTTP(res, req)
+func NewApp() *App {
+	app := &App{}
+
+	app.middlewaresSync.Lock()
+	app.routersSync.Lock()
+	app.binRoutersSync.Lock()
+	app.vHostsSync.Lock()
+	app.vHostsRegExpSync.Lock()
+	app.htmlFileCacheSync.Lock()
+	app.htmlGlobLockerSync.Lock()
+	app.sessionMapSync.Lock()
+
+	app.middlewares = map[string]*Middlewares{"main": MainMiddlewares}
+	app.routers = map[string]*Router{}
+	app.binRouters = map[string]*BinRouter{}
+	app.vHosts = map[string]*VHost{}
+	app.vHostsRegExp = map[string]*VHostRegExp{}
+	app.htmlFileCache = map[string]interface{}{}
+	app.htmlGlobLocker = map[string][]string{}
+	app.sessionMap = map[string]sessionInterface{}
+
+	app.middlewaresSync.Unlock()
+	app.routersSync.Unlock()
+	app.binRoutersSync.Unlock()
+	app.vHostsSync.Unlock()
+	app.vHostsRegExpSync.Unlock()
+	app.htmlFileCacheSync.Unlock()
+	app.htmlGlobLockerSync.Unlock()
+	app.sessionMapSync.Unlock()
+
+	app.MiddlewareEnabled = true
+
+	app.SessionCookieName = NewAtomicString("__session")
+	app.SessionExpire = 20 * time.Minute
+	app.SessionExpireCheckInterval = 10 * time.Minute
+	app.SessionHandler = SessionMemory{}
+
+	app.TimeFormat = NewAtomicString("Monday, _2 January 2006, 15:04")
+
+	app.DefaultRouter = app.Router("main")
+
+	app.Router("main").RegisterFunc(`^/?$`, func(c *Core) {
+		c.Fmt().Print("<h1>Hello World!</h1>")
+	})
+
+	app.DefaultView = RouteHandlerFunc(func(c *Core) {
+		appMiddlewares := app.Middlewares("app").Init(c)
+		defer appMiddlewares.Post()
+		appMiddlewares.Pre()
+		if c.CutOut() {
+			return
+		}
+
+		c.RouteDealer(app.DefaultRouter)
+	})
+
+	app.URLRev = &URLReverse{}
+
+	app.Error403 = func(c *Core) {
+		c.Fmt().Print("<h1>403 Forbidden</h1>")
+	}
+	app.Error404 = func(c *Core) {
+		c.Fmt().Print("<h1>404 Not Found</h1>")
+	}
+	app.Error405 = func(c *Core) {
+		c.Fmt().Print("<h1>405 Method Not Allowed</h1>")
+	}
+	app.Error500 = func(c *Core) {
+		c.Fmt().Print("<h1>500 Internal Server Error</h1>")
+	}
+
+	app.regExpCache = newRegExpCacheSystem()
+
+	app.FormMemoryLimit = 16 * 1024 * 1024
+
+	app.SetTimeZone("Local")
+
+	app.HtmlTemplateCacheExpire = 24 * time.Hour
+
+	return app
 }
 
-// Start Http Server
-func StartHttp(addr string) error {
-	return http.ListenAndServe(addr, http.HandlerFunc(nonsecure))
+func (app *App) Middlewares(name string) *Middlewares {
+	app.middlewaresSync.Lock()
+	defer app.middlewaresSync.Unlock()
+	if app.middlewares[name] == nil {
+		app.middlewares[name] = NewMiddlewares()
+	}
+	return app.middlewares[name]
 }
 
-// Start Http Server with TLS
-func StartHttpTLS(addr string, certFile string, keyFile string) error {
-	return http.ListenAndServeTLS(addr, certFile, keyFile, http.HandlerFunc(secure))
+func (app *App) Router(name string) *Router {
+	app.routersSync.Lock()
+	defer app.routersSync.Unlock()
+	if app.routers[name] == nil {
+		app.routers[name] = NewRouter()
+	}
+	return app.routers[name]
 }
 
-// Emulate TLS Server via Http connection, the connection is unencrypted!
-//
-// Only work in debug mode.  Does not require certificate files.
-func StartDummyHttpTLS(port uint16) error {
-	if !DEBUG {
+func (app *App) BinRouter(name string) *BinRouter {
+	app.binRoutersSync.Lock()
+	defer app.binRoutersSync.Unlock()
+	if app.binRouters[name] == nil {
+		app.binRouters[name] = NewBinRouter()
+	}
+	return app.binRouters[name]
+}
+
+func (app *App) VHost(name string) *VHost {
+	app.vHostsSync.Lock()
+	defer app.vHostsSync.Unlock()
+	if app.vHosts[name] == nil {
+		app.vHosts[name] = NewVHost()
+	}
+	return app.vHosts[name]
+}
+
+func (app *App) VHostRegExp(name string) *VHostRegExp {
+	app.vHostsRegExpSync.Lock()
+	defer app.vHostsRegExpSync.Unlock()
+	if app.vHostsRegExp[name] == nil {
+		app.vHostsRegExp[name] = NewVHostRegExp()
+	}
+	return app.vHostsRegExp[name]
+}
+
+func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
+	if app.SecureHeader != "" {
+		if req.Header.Get(app.SecureHeader) != "" {
+			secure = true
+		}
+	}
+
+	c := &Core{
+		App: app,
+		rw:  res.(rw),
+		Req: req,
+		Pub: Public{
+			Status:      http.StatusOK,
+			Context:     map[string]interface{}{},
+			ContextStr:  map[string]string{},
+			Group:       Group{},
+			HtmlFunc:    html.FuncMap{},
+			Session:     nil,
+			TimeLoc:     app.TimeLoc,
+			TimeFormat:  app.TimeFormat.String(),
+			BinPathDump: []string{},
+			Writers:     map[string]io.Writer{},
+			Readers:     map[string]io.Reader{},
+			Errors: Errors{
+				E403: app.Error403,
+				E404: app.Error404,
+				E405: app.Error405,
+				E500: app.Error500,
+			},
+		},
+		pri: private{
+			path:       req.URL.Path,
+			curpath:    "",
+			cut:        false,
+			firstWrite: true,
+			secure:     secure,
+		},
+	}
+
+	c.initWriter()
+	c.initTrueHost()
+	c.initTrueRemoteAddr()
+	c.initTruePath()
+	c.initSecure()
+	c.initSession()
+
+	mainMiddleware := app.Middlewares("main").Init(c)
+	defer func() {
+		mainMiddleware.Post()
+		if !c.CutOut() && c.Req.Method != "HEAD" {
+			panic(ErrorStr("No Output was sent to Client!"))
+		}
+	}()
+
+	defer c.recover()
+
+	c.debugStart()
+	defer c.debugEnd()
+
+	mainMiddleware.Html()
+
+	if c.CutOut() {
+		return
+	}
+
+	mainMiddleware.Pre()
+
+	if c.CutOut() {
+		return
+	}
+
+	c.RouteDealer(app.DefaultView)
+}
+
+func (app *App) Listen(addr string) error {
+	return http.ListenAndServe(addr, http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		app.serve(res, req, false)
+	}))
+}
+
+func (app *App) ListenTLSDummy(port uint16) error {
+	if !app.Debug || port == 0 {
 		return nil
 	}
-	debugTlsPortNumber = port
-	return http.ListenAndServe(fmt.Sprint(":", port), http.HandlerFunc(secure))
+	app.debugTlsPortNumber = port
+	return http.ListenAndServe(fmt.Sprint(":", port),
+		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			app.serve(res, req, true)
+		}),
+	)
 }
 
-// Start FastCGI Server
-func StartFastCGI(l net.Listener) error {
-	if l == nil {
-		os.Stderr = nil
-	}
-	return fcgi.Serve(l, http.HandlerFunc(nonsecure))
+func (app *App) ListenTLS(addr, certFile, keyFile string) error {
+	return http.ListenAndServeTLS(addr, certFile, keyFile,
+		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			app.serve(res, req, true)
+		}),
+	)
 }
 
-// Start CGI, disables Stderr completely. (Due to the way how IIS handlers Stderr)
-func StartCGI() error {
-	os.Stderr = nil
-	return cgi.Serve(http.HandlerFunc(nonsecure))
+func (app *App) ListenFCGI(l net.Listener) error {
+	return fcgi.Serve(l, http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		app.serve(res, req, false)
+	}))
 }
 
 // Debug Middleware, Add HTML Function to template!
@@ -281,11 +456,11 @@ type DebugMiddleware struct {
 func (de *DebugMiddleware) Html() {
 	c := de.C
 	c.Pub.HtmlFunc["Debug"] = func() bool {
-		return DEBUG
+		return de.C.App.Debug
 	}
 
 	c.Pub.HtmlFunc["NotDebug"] = func() bool {
-		return !DEBUG
+		return !de.C.App.Debug
 	}
 }
 

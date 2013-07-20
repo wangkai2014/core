@@ -137,29 +137,3 @@ func (vh *VHostRegExp) View(c *Core) {
 
 	c.Error404()
 }
-
-func SetVHostsToMainView() {
-	MainView = RouteHandlerFunc(func(c *Core) {
-		appMiddlewares := AppMiddlewares.Init(c)
-		defer appMiddlewares.Post()
-		appMiddlewares.Pre()
-		if c.CutOut() {
-			return
-		}
-
-		VHosts.View(c)
-	})
-}
-
-func SetVHostsRegExpToMainView() {
-	MainView = RouteHandlerFunc(func(c *Core) {
-		appMiddlewares := AppMiddlewares.Init(c)
-		defer appMiddlewares.Post()
-		appMiddlewares.Pre()
-		if c.CutOut() {
-			return
-		}
-
-		VHostsRegExp.View(c)
-	})
-}

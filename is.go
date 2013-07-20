@@ -1,9 +1,5 @@
 package core
 
-import (
-	"strings"
-)
-
 type Is struct {
 	c *Core
 }
@@ -29,5 +25,5 @@ func (i Is) DNT() bool {
 
 // Is Secure
 func (i Is) Secure() bool {
-	return strings.ToLower(strings.Split(i.c.Req.Proto, "/")[0]) == "shttp"
+	return i.c.pri.secure
 }

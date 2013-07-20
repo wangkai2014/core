@@ -15,6 +15,7 @@ func TestBinRouter(t *testing.T) {
 	})
 
 	c := &Core{
+		App: NewApp(),
 		Pub: Public{
 			Errors: Errors{
 				E403: fail,

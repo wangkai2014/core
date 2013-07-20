@@ -90,9 +90,9 @@ func (u Url) AbsoluteHttps(relative_url string) string {
 	if c.Req.URL.Host != "" {
 		host := c.Req.URL.Host
 		protocol := "https://"
-		if debugTlsPortNumber != uint16(0) {
+		if c.App.debugTlsPortNumber != uint16(0) {
 			protocol = "http://"
-			host = strings.Split(host, ":")[0] + fmt.Sprint(":", debugTlsPortNumber)
+			host = strings.Split(host, ":")[0] + fmt.Sprint(":", c.App.debugTlsPortNumber)
 		}
 		return protocol + host + relative_url
 	}
@@ -102,7 +102,7 @@ func (u Url) AbsoluteHttps(relative_url string) string {
 
 // Shortcut to Reverse
 func (u Url) Reverse(name string, a ...interface{}) string {
-	return URLRev.Print(name, a...)
+	return u.c.App.URLRev.Print(name, a...)
 }
 
 func (u Url) code301() int {
@@ -155,7 +155,7 @@ type URLReverseMiddleware struct {
 
 func (url *URLReverseMiddleware) Html() {
 	url.C.Pub.HtmlFunc["url"] = func(name string, a ...interface{}) string {
-		return URLRev.Print(name, a...)
+		return url.C.App.URLRev.Print(name, a...)
 	}
 }
 

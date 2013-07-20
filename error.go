@@ -27,7 +27,7 @@ func printPanic(buf io.Writer, c *Core, r interface{}, stack []byte) {
 	printLn("\r\nRequest Header:")
 	printLn(c.Req.Header)
 
-	c.Req.ParseMultipartForm(FormMemoryLimit)
+	c.Req.ParseMultipartForm(c.App.FormMemoryLimit)
 
 	printLn("\r\nForm Values:")
 	printLn(c.Req.Form)
@@ -147,7 +147,7 @@ func (c *Core) recover() {
 	if r := recover(); r != nil {
 		stack := debug.Stack()
 		DefaultPanicHandler.Panic(c, r, stack)
-		if DEBUG {
+		if c.App.Debug {
 			c.Pub.Status = 500
 			c.Fmt().Println("500 Internal Server Error")
 			printPanic(c, c, r, stack)

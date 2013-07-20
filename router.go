@@ -146,7 +146,7 @@ func (ro *Router) Load(c *Core) {
 		return
 	}
 
-	if DEBUG {
+	if c.App.Debug {
 		ro.debug(c)
 		return
 	}
@@ -164,7 +164,7 @@ func (ro *Router) LoadReset(c *Core) {
 		return
 	}
 
-	if DEBUG {
+	if c.App.Debug {
 		ro.debug(c)
 		return
 	}

@@ -74,7 +74,7 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 			if tag == "" {
 				goto value_of
 			}
-			if !_regExpCache.Get(tag).MatchString(value) {
+			if !c.App.regExpCache.Get(tag).MatchString(value) {
 				c.Error404()
 				return
 			}

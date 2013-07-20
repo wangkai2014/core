@@ -27,7 +27,8 @@ func TestProtocol(t *testing.T) {
 			Header: http.Header{},
 		},
 		pri: private{
-			cut: false,
+			cut:    false,
+			secure: false,
 		},
 	}
 
@@ -41,15 +42,7 @@ func TestProtocol(t *testing.T) {
 		t.Fail()
 	}
 
-	c.Req.Proto = "SHTTP/1.3"
-
-	c.RouteDealer(&ProtocolDummy{})
-
-	if protocol() != "HTTPS" {
-		t.Fail()
-	}
-
-	c.Req.Proto = "HTTPS/1.3"
+	c.pri.secure = true
 
 	c.RouteDealer(&ProtocolDummy{})
 

@@ -115,7 +115,7 @@ func (f *Form) Deny(fields ...string) *Form {
 
 // Generate a new form.
 func (c *Core) Form() *Form {
-	c.Req.ParseMultipartForm(FormMemoryLimit)
+	c.Req.ParseMultipartForm(c.App.FormMemoryLimit)
 
 	form := &Form{}
 	if c.Req.MultipartForm != nil {

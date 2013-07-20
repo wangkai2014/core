@@ -168,7 +168,7 @@ func (bin *BinRouter) RegisterFuncMap(funcmap FuncMap) *BinRouter {
 }
 
 func (bin *BinRouter) error404(c *Core) {
-	if !DEBUG {
+	if !c.App.Debug {
 		c.Error404()
 		return
 	}
@@ -236,18 +236,4 @@ func (bin *BinRouter) View(c *Core) {
 	}
 
 	bin.routes[pos].route.View(c)
-}
-
-// Set Bin Route To Main View
-func SetBinRouteToMainView() {
-	MainView = RouteHandlerFunc(func(c *Core) {
-		appMiddlewares := AppMiddlewares.Init(c)
-		defer appMiddlewares.Post()
-		appMiddlewares.Pre()
-		if c.CutOut() {
-			return
-		}
-
-		BinRoute.View(c)
-	})
 }
