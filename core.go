@@ -213,6 +213,9 @@ type App struct {
 	regExpCache regExpCacheSystem
 
 	FormMemoryLimit int64
+
+	fileServers     map[string]RouteHandler
+	fileServersSync sync.Mutex
 }
 
 func NewApp() *App {
@@ -226,6 +229,7 @@ func NewApp() *App {
 	app.htmlFileCacheSync.Lock()
 	app.htmlGlobLockerSync.Lock()
 	app.sessionMapSync.Lock()
+	app.fileServersSync.Lock()
 
 	app.middlewares = map[string]*Middlewares{"main": MainMiddlewares}
 	app.routers = map[string]*Router{}
@@ -235,6 +239,7 @@ func NewApp() *App {
 	app.htmlFileCache = map[string]interface{}{}
 	app.htmlGlobLocker = map[string][]string{}
 	app.sessionMap = map[string]sessionInterface{}
+	app.fileServers = map[string]RouteHandler{}
 
 	app.middlewaresSync.Unlock()
 	app.routersSync.Unlock()
@@ -244,6 +249,7 @@ func NewApp() *App {
 	app.htmlFileCacheSync.Unlock()
 	app.htmlGlobLockerSync.Unlock()
 	app.sessionMapSync.Unlock()
+	app.fileServersSync.Unlock()
 
 	app.MiddlewareEnabled = true
 
@@ -342,6 +348,12 @@ func (app *App) VHostRegExp(name string) *VHostRegExp {
 	return app.vHostsRegExp[name]
 }
 
+func (app *App) FileServer(path, dir string) {
+	app.fileServersSync.Lock()
+	defer app.fileServersSync.Unlock()
+	app.fileServers[path] = fileServer(path, dir)
+}
+
 func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	if app.SecureHeader != "" {
 		if req.Header.Get(app.SecureHeader) != "" {
@@ -389,6 +401,23 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	c.initSecure()
 	c.initSession()
 
+	c.debugStart()
+	defer c.debugEnd()
+
+	c.App.fileServersSync.Lock()
+	for dir, fileServer := range c.App.fileServers {
+		if len(c.pri.path) < len(dir) {
+			continue
+		}
+
+		if dir == c.pri.path[:len(dir)] {
+			c.App.fileServersSync.Unlock()
+			fileServer.View(c)
+			return
+		}
+	}
+	c.App.fileServersSync.Unlock()
+
 	mainMiddleware := app.Middlewares("main").Init(c)
 	defer func() {
 		mainMiddleware.Post()
@@ -398,9 +427,6 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	}()
 
 	defer c.recover()
-
-	c.debugStart()
-	defer c.debugEnd()
 
 	mainMiddleware.Html()
 

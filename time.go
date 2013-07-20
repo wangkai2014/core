@@ -62,3 +62,7 @@ func (t *TimeMiddleware) Html() {
 		return clock.Format(format)
 	}
 }
+
+func init() {
+	MainMiddlewares.Register(&TimeMiddleware{})
+}
