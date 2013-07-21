@@ -226,6 +226,13 @@ type App struct {
 func NewApp() *App {
 	app := &App{}
 
+	app.Name = "default"
+
+	appCount++
+	if appCount > 1 {
+		app.Name = fmt.Sprint(app.Name, "-", appCount)
+	}
+
 	app.middlewaresSync.Lock()
 	app.routersSync.Lock()
 	app.binRoutersSync.Lock()

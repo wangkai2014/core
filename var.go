@@ -14,4 +14,6 @@ var (
 		sync.RWMutex
 		ro []RouteAsserter
 	}{ro: []RouteAsserter{}}
+
+	appCount = 0
 )
