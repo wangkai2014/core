@@ -162,6 +162,8 @@ func (c *Core) debugEnd() {
 }
 
 type App struct {
+	Name string
+
 	Debug              bool
 	debugTlsPortNumber uint16
 
@@ -216,6 +218,9 @@ type App struct {
 
 	fileServers     map[string]RouteHandler
 	fileServersSync sync.Mutex
+
+	data     map[string]interface{}
+	dataSync sync.RWMutex
 }
 
 func NewApp() *App {
@@ -230,6 +235,7 @@ func NewApp() *App {
 	app.htmlGlobLockerSync.Lock()
 	app.sessionMapSync.Lock()
 	app.fileServersSync.Lock()
+	app.dataSync.Lock()
 
 	app.middlewares = map[string]*Middlewares{"main": MainMiddlewares}
 	app.routers = map[string]*Router{}
@@ -240,6 +246,7 @@ func NewApp() *App {
 	app.htmlGlobLocker = map[string][]string{}
 	app.sessionMap = map[string]sessionInterface{}
 	app.fileServers = map[string]RouteHandler{}
+	app.data = map[string]interface{}{}
 
 	app.middlewaresSync.Unlock()
 	app.routersSync.Unlock()
@@ -250,6 +257,7 @@ func NewApp() *App {
 	app.htmlGlobLockerSync.Unlock()
 	app.sessionMapSync.Unlock()
 	app.fileServersSync.Unlock()
+	app.dataSync.Unlock()
 
 	app.MiddlewareEnabled = true
 
@@ -346,6 +354,18 @@ func (app *App) VHostRegExp(name string) *VHostRegExp {
 		app.vHostsRegExp[name] = NewVHostRegExp()
 	}
 	return app.vHostsRegExp[name]
+}
+
+func (app *App) Data(name string) interface{} {
+	app.dataSync.RLock()
+	defer app.dataSync.RUnlock()
+	return app.data[name]
+}
+
+func (app *App) DataSet(name string, data interface{}) {
+	app.dataSync.Lock()
+	defer app.dataSync.Unlock()
+	app.data[name] = data
 }
 
 func (app *App) FileServer(path, dir string) {
