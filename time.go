@@ -12,7 +12,7 @@ func (app *App) SetTimeZone(zone string) {
 }
 
 // Get Current Time
-func CurTime() time.Time {
+func (app *App) CurTime() time.Time {
 	return time.Now()
 }
 

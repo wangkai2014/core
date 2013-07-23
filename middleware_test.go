@@ -1,6 +1,8 @@
 package core
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -34,43 +36,44 @@ func (mid *MiddlewareDummy2) Post() {
 }
 
 func TestMiddleware(t *testing.T) {
-	c := &Core{
-		App: NewApp(),
-		Pub: Public{
-			Group: Group{},
-		},
-		pri: private{
-			cut: false,
-		},
-	}
+	App := NewApp()
 
-	result := func() string {
-		return c.Pub.Group.Get("result")
-	}
+	App.Debug = true
 
-	mid := NewMiddlewares().Register(&MiddlewareDummy{}).Init(c)
-	mid.Pre()
+	App.TestView = RouteHandlerFunc(func(c *Core) {
+		result := func() string {
+			return c.Pub.Group.Get("result")
+		}
 
-	if result() != "PRE" {
-		t.Fail()
-	}
+		mid := NewMiddlewares().Register(&MiddlewareDummy{}).Init(c)
+		mid.Pre()
 
-	mid.Post()
+		if result() != "PRE" {
+			t.Fail()
+		}
 
-	if result() != "POST" {
-		t.Fail()
-	}
+		mid.Post()
 
-	mid = NewMiddlewares().Register(&MiddlewareDummy2{}, &MiddlewareDummy{}).Init(c)
-	mid.Pre()
+		if result() != "POST" {
+			t.Fail()
+		}
 
-	if result() != "PRE2" {
-		t.Fail()
-	}
+		mid = NewMiddlewares().Register(&MiddlewareDummy2{}, &MiddlewareDummy{}).Init(c)
+		mid.Pre()
 
-	mid.Post()
+		if result() != "PRE2" {
+			t.Fail()
+		}
 
-	if result() != "POST2" {
-		t.Fail()
-	}
+		mid.Post()
+
+		if result() != "POST2" {
+			t.Fail()
+		}
+	})
+
+	ts := httptest.NewServer(App)
+	defer ts.Close()
+
+	http.Get(ts.URL)
 }

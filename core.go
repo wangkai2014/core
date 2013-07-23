@@ -172,6 +172,8 @@ type App struct {
 	DefaultRouter RouteHandler
 	DefaultView   RouteHandler
 
+	TestView RouteHandler
+
 	MiddlewareEnabled bool
 	middlewares       map[string]*Middlewares
 	middlewaresSync   sync.Mutex
@@ -381,6 +383,10 @@ func (app *App) FileServer(path, dir string) {
 	app.fileServers[path] = fileServer(path, dir)
 }
 
+func (app *App) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	app.serve(res, req, false)
+}
+
 func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	if app.SecureHeader != "" {
 		if req.Header.Get(app.SecureHeader) != "" {
@@ -428,6 +434,11 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	c.initSecure()
 	c.initSession()
 
+	if app.Debug && app.TestView != nil {
+		app.TestView.View(c)
+		return
+	}
+
 	c.debugStart()
 	defer c.debugEnd()
 
@@ -471,9 +482,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 }
 
 func (app *App) Listen(addr string) error {
-	return http.ListenAndServe(addr, http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		app.serve(res, req, false)
-	}))
+	return http.ListenAndServe(addr, app)
 }
 
 func (app *App) ListenTLSDummy(port uint16) error {
@@ -481,25 +490,24 @@ func (app *App) ListenTLSDummy(port uint16) error {
 		return nil
 	}
 	app.debugTlsPortNumber = port
-	return http.ListenAndServe(fmt.Sprint(":", port),
-		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			app.serve(res, req, true)
-		}),
-	)
+	return http.ListenAndServe(fmt.Sprint(":", port), AppSecure{app})
 }
 
 func (app *App) ListenTLS(addr, certFile, keyFile string) error {
-	return http.ListenAndServeTLS(addr, certFile, keyFile,
-		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			app.serve(res, req, true)
-		}),
-	)
+	return http.ListenAndServeTLS(addr, certFile, keyFile, AppSecure{app})
 }
 
 func (app *App) ListenFCGI(l net.Listener) error {
-	return fcgi.Serve(l, http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		app.serve(res, req, false)
-	}))
+	return fcgi.Serve(l, app)
+}
+
+// A Secure Adapter for App!
+type AppSecure struct {
+	*App
+}
+
+func (app AppSecure) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	app.serve(res, req, true)
 }
 
 // Debug Middleware, Add HTML Function to template!

@@ -2,10 +2,15 @@ package core
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
 func TestRouter(t *testing.T) {
+	App := NewApp()
+
+	App.Debug = true
+
 	possible_pass := RouteHandlerFunc(func(c *Core) {
 		if c.Pub.Group.Get("title") != "test" {
 			t.Fail()
@@ -24,38 +29,32 @@ func TestRouter(t *testing.T) {
 		t.Fail()
 	})
 
-	c := &Core{
-		App: NewApp(),
-		Pub: Public{
-			Errors: Errors{
-				E403: fail,
-				E404: fail,
-				E500: fail,
-			},
-			Group: Group{},
-		},
-		Req: &http.Request{
-			Header: http.Header{},
-		},
-		pri: private{
-			path:    "/blogpost/test-5",
-			curpath: "",
-			cut:     false,
-		},
-	}
+	App.TestView = RouteHandlerFunc(func(c *Core) {
+		c.Pub.Errors.E403 = fail
+		c.Pub.Errors.E404 = fail
+		c.Pub.Errors.E500 = fail
 
-	route := NewRouter().RegisterMap(Map{
-		`^/blogpost`: NewRouter().RegisterMap(Map{
-			`^/(?P<title>[a-z]+)-(?P<id>\d+)/?$`: possible_pass,
-		}),
+		c.pri.path = "/blogpost/test-5"
+
+		route := NewRouter().RegisterMap(Map{
+			`^/blogpost`: NewRouter().RegisterMap(Map{
+				`^/(?P<title>[a-z]+)-(?P<id>\d+)/?$`: possible_pass,
+			}),
+		})
+
+		route.Load(c)
+
+		c.pri.path = "/55"
+		c.pri.curpath = ""
+
+		c.Pub.Errors.E404 = pass
+
+		route.Load(c)
+
 	})
 
-	route.Load(c)
+	ts := httptest.NewServer(App)
+	defer ts.Close()
 
-	c.pri.path = "/55"
-	c.pri.curpath = ""
-
-	c.Pub.Errors.E404 = pass
-
-	route.Load(c)
+	http.Get(ts.URL)
 }
