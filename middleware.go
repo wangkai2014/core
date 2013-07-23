@@ -140,9 +140,10 @@ func (mid *Middlewares) Pre() {
 	if mid.c == nil {
 		return
 	}
-	for _, middleware := range mid.items {
+	for key, middleware := range mid.items {
 		middleware.Pre()
 		if mid.c.CutOut() {
+			mid.items = mid.items[:key+1]
 			return
 		}
 	}
