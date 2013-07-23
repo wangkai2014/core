@@ -2,6 +2,7 @@ package core
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -18,35 +19,34 @@ func (pr *ProtocolDummy) Https() {
 }
 
 func TestProtocol(t *testing.T) {
-	c := &Core{
-		Pub: Public{
-			Group: Group{},
-		},
-		Req: &http.Request{
-			Proto:  "HTTP/1.1",
-			Header: http.Header{},
-		},
-		pri: private{
-			cut:    false,
-			secure: false,
-		},
-	}
+	App := NewApp()
 
-	protocol := func() string {
-		return c.Pub.Group.Get("protocol")
-	}
+	App.Debug = true
 
-	c.RouteDealer(&ProtocolDummy{})
+	App.TestView = RouteHandlerFunc(func(c *Core) {
 
-	if protocol() != "HTTP" {
-		t.Fail()
-	}
+		protocol := func() string {
+			return c.Pub.Group.Get("protocol")
+		}
 
-	c.pri.secure = true
+		c.RouteDealer(&ProtocolDummy{})
 
-	c.RouteDealer(&ProtocolDummy{})
+		if protocol() != "HTTP" {
+			t.Fail()
+		}
 
-	if protocol() != "HTTPS" {
-		t.Fail()
-	}
+		c.pri.secure = true
+
+		c.RouteDealer(&ProtocolDummy{})
+
+		if protocol() != "HTTPS" {
+			t.Fail()
+		}
+
+	})
+
+	ts := httptest.NewServer(App)
+	defer ts.Close()
+
+	http.Get(ts.URL)
 }

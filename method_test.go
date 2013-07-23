@@ -2,6 +2,7 @@ package core
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -50,68 +51,68 @@ func (me *MethodDummy) Options() {
 }
 
 func TestMethod(t *testing.T) {
-	w := &Core{
-		Pub: Public{
-			Group: Group{},
-		},
-		Req: &http.Request{
-			Method: "GET",
-			Header: http.Header{},
-		},
-		pri: private{
-			cut: false,
-		},
-	}
+	App := NewApp()
 
-	prepare := func() string {
-		return w.Pub.Group.Get("prepare")
-	}
+	App.Debug = true
 
-	ws := func() string {
-		return w.Pub.Group.Get("ws")
-	}
+	App.TestView = RouteHandlerFunc(func(w *Core) {
 
-	ajax := func() string {
-		return w.Pub.Group.Get("ajax")
-	}
+		prepare := func() string {
+			return w.Pub.Group.Get("prepare")
+		}
 
-	finish := func() string {
-		return w.Pub.Group.Get("finish")
-	}
+		ws := func() string {
+			return w.Pub.Group.Get("ws")
+		}
 
-	method := func() string {
-		return w.Pub.Group.Get("method")
-	}
+		ajax := func() string {
+			return w.Pub.Group.Get("ajax")
+		}
 
-	w.RouteDealer(&MethodDummy{})
+		finish := func() string {
+			return w.Pub.Group.Get("finish")
+		}
 
-	if prepare() != "PREPARE" {
-		t.Fail()
-	}
+		method := func() string {
+			return w.Pub.Group.Get("method")
+		}
 
-	if ws() == "WS" {
-		t.Fail()
-	}
-
-	if ajax() == "AJAX" {
-		t.Fail()
-	}
-
-	if finish() != "FINISH" {
-		t.Fail()
-	}
-
-	if method() != "GET" {
-		t.Fail()
-	}
-
-	slices := []string{"POST", "DELETE", "PUT", "PATCH", "OPTIONS"}
-
-	for _, value := range slices {
-		w.Req.Method = value
 		w.RouteDealer(&MethodDummy{})
-		if method() != value {
+
+		if prepare() != "PREPARE" {
 			t.Fail()
 		}
-	}
+
+		if ws() == "WS" {
+			t.Fail()
+		}
+
+		if ajax() == "AJAX" {
+			t.Fail()
+		}
+
+		if finish() != "FINISH" {
+			t.Fail()
+		}
+
+		if method() != "GET" {
+			t.Fail()
+		}
+
+		slices := []string{"POST", "DELETE", "PUT", "PATCH", "OPTIONS"}
+
+		for _, value := range slices {
+			w.Req.Method = value
+			w.RouteDealer(&MethodDummy{})
+			if method() != value {
+				t.Fail()
+			}
+		}
+
+	})
+
+	ts := httptest.NewServer(App)
+	defer ts.Close()
+
+	http.Get(ts.URL)
 }
