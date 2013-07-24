@@ -47,8 +47,8 @@ type Public struct {
 	TimeLoc *time.Location
 	// Time Format
 	TimeFormat string
-	// BinRouter Path Dump
-	BinPathDump []string
+	// DirRouter Path Dump
+	DirPathDump []string
 	// Reader and Writer Dump
 	Writers map[string]io.Writer
 	Readers map[string]io.Reader
@@ -181,8 +181,8 @@ type App struct {
 	routers     map[string]*Router
 	routersSync sync.Mutex
 
-	binRouters     map[string]*BinRouter
-	binRoutersSync sync.Mutex
+	dirRouters     map[string]*DirRouter
+	dirRoutersSync sync.Mutex
 
 	vHosts     map[string]*VHost
 	vHostsSync sync.Mutex
@@ -237,7 +237,7 @@ func NewApp() *App {
 
 	app.middlewaresSync.Lock()
 	app.routersSync.Lock()
-	app.binRoutersSync.Lock()
+	app.dirRoutersSync.Lock()
 	app.vHostsSync.Lock()
 	app.vHostsRegExpSync.Lock()
 	app.htmlFileCacheSync.Lock()
@@ -248,7 +248,7 @@ func NewApp() *App {
 
 	app.middlewares = map[string]*Middlewares{"main": MainMiddlewares}
 	app.routers = map[string]*Router{}
-	app.binRouters = map[string]*BinRouter{}
+	app.dirRouters = map[string]*DirRouter{}
 	app.vHosts = map[string]*VHost{}
 	app.vHostsRegExp = map[string]*VHostRegExp{}
 	app.htmlFileCache = map[string]interface{}{}
@@ -259,7 +259,7 @@ func NewApp() *App {
 
 	app.middlewaresSync.Unlock()
 	app.routersSync.Unlock()
-	app.binRoutersSync.Unlock()
+	app.dirRoutersSync.Unlock()
 	app.vHostsSync.Unlock()
 	app.vHostsRegExpSync.Unlock()
 	app.htmlFileCacheSync.Unlock()
@@ -338,13 +338,13 @@ func (app *App) Router(name string) *Router {
 	return app.routers[name]
 }
 
-func (app *App) BinRouter(name string) *BinRouter {
-	app.binRoutersSync.Lock()
-	defer app.binRoutersSync.Unlock()
-	if app.binRouters[name] == nil {
-		app.binRouters[name] = NewBinRouter()
+func (app *App) DirRouter(name string) *DirRouter {
+	app.dirRoutersSync.Lock()
+	defer app.dirRoutersSync.Unlock()
+	if app.dirRouters[name] == nil {
+		app.dirRouters[name] = NewDirRouter()
 	}
-	return app.binRouters[name]
+	return app.dirRouters[name]
 }
 
 func (app *App) VHost(name string) *VHost {
@@ -408,7 +408,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 			Session:     nil,
 			TimeLoc:     app.TimeLoc,
 			TimeFormat:  app.TimeFormat.String(),
-			BinPathDump: []string{},
+			DirPathDump: []string{},
 			Writers:     map[string]io.Writer{},
 			Readers:     map[string]io.Reader{},
 			Errors: Errors{

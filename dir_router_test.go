@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestBinRouter(t *testing.T) {
+func TestDirRouter(t *testing.T) {
 	App := NewApp()
 
 	App.Debug = true
@@ -24,17 +24,17 @@ func TestBinRouter(t *testing.T) {
 		c.Pub.Errors.E404 = fail
 		c.Pub.Errors.E500 = fail
 
-		route := NewBinRouter().RootDir(pass)
+		route := NewDirRouter().RootDir(pass)
 
 		route.View(c)
 
-		route.RootDir(fail).Register("blogpost", NewBinRouter().Register("example", pass))
+		route.RootDir(fail).Register("blogpost", NewDirRouter().Register("example", pass))
 
 		c.pri.path = "/blogpost/example"
 
 		route.View(c)
 
-		route.Register("blogpost", NewBinRouter().Register("example", fail))
+		route.Register("blogpost", NewDirRouter().Register("example", fail))
 
 		c.Pub.Errors.E404 = pass
 

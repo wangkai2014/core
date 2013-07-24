@@ -205,7 +205,7 @@ func (c *Core) RouteDealer(ro RouteHandler) {
 	case *Router:
 		t.View(c)
 		return
-	case *BinRouter:
+	case *DirRouter:
 		t.View(c)
 		return
 	case RouteHandlerFunc:

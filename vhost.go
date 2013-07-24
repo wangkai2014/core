@@ -16,7 +16,7 @@ type vHost struct {
 // VHost Data Type, Implement RouteHandler interface.
 type VHost struct {
 	sync.RWMutex
-	hosts []*vHost
+	hosts map[string]*vHost
 }
 
 // Construct New VHost!
@@ -27,8 +27,11 @@ func NewVHost() *VHost {
 func (v *VHost) register(hosts Map) {
 	v.Lock()
 	defer v.Unlock()
+	if v.hosts == nil {
+		v.hosts = map[string]*vHost{}
+	}
 	for host, routerHandler := range hosts {
-		v.hosts = append(v.hosts, &vHost{host, routerHandler})
+		v.hosts[host] = &vHost{host, routerHandler}
 	}
 }
 
@@ -45,18 +48,17 @@ func (v *VHost) View(c *Core) {
 	}
 	curHostName = strings.ToLower(curHostName)
 
-	hosts_len := len(v.hosts)
+	v.RLock()
+	host := v.hosts[curHostName]
+	v.RUnlock()
 
-	pos := sort.Search(hosts_len, func(i int) bool {
-		return strings.ToLower(v.hosts[i].name) >= curHostName
-	})
-
-	if pos == hosts_len || strings.ToLower(v.hosts[pos].name) != curHostName {
+	if host == nil {
 		c.Error404()
+		v.RUnlock()
 		return
 	}
 
-	c.RouteDealer(v.hosts[pos].route)
+	c.RouteDealer(host.route)
 	return
 }
 
