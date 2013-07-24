@@ -19,8 +19,8 @@ func SubExample(c *core.Core) {
 }
 
 func init() {
-	app.DefaultRouter = app.BinRouter("main").RootDirFunc(Index).RegisterMap(core.Map{
-		"example": app.BinRouter("example").RootDirFunc(Example).RegisterFuncMap(core.FuncMap{
+	app.DefaultRouter = app.DirRouter("main").RootDirFunc(Index).RegisterMap(core.Map{
+		"example": app.DirRouter("example").RootDirFunc(Example).RegisterFuncMap(core.FuncMap{
 			"subexample": SubExample,
 		}),
 	})
