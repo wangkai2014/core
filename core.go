@@ -143,22 +143,15 @@ func (c *Core) Cut() {
 	c.pri.cut = true
 }
 
-func (c *Core) debuginfo(a string) {
+func (c *Core) debuginfo() {
 	if !c.App.Debug {
 		return
 	}
-	ErrPrintf("--\r\n %s  %s, %s, %s, %s, ?%s IP:%s \r\n--\r\n",
-		a, c.Req.Proto, c.Req.Method,
+	ErrPrintf("%s, %s, %s, %s, ?%s IP:%s",
+		c.Req.Proto, c.Req.Method,
 		c.Req.Host, c.Req.URL.Path,
 		c.Req.URL.RawQuery, c.Req.RemoteAddr)
-}
-
-func (c *Core) debugStart() {
-	c.debuginfo("START")
-}
-
-func (c *Core) debugEnd() {
-	c.debuginfo("END  ")
+	ErrPrintln()
 }
 
 type App struct {
@@ -166,6 +159,7 @@ type App struct {
 
 	Debug              bool
 	debugTlsPortNumber uint16
+	debugPortNumber    uint16
 
 	SecureHeader string
 
@@ -439,8 +433,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 		return
 	}
 
-	c.debugStart()
-	defer c.debugEnd()
+	c.debuginfo()
 
 	c.App.fileServersSync.Lock()
 	for dir, fileServer := range c.App.fileServers {
@@ -482,6 +475,15 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 }
 
 func (app *App) Listen(addr string) error {
+	if app.Debug {
+		_, port, err := net.SplitHostPort(addr)
+		if err != nil {
+			addr2 := "example.com" + addr
+			_, port, _ = net.SplitHostPort(addr2)
+		}
+		p, _ := toUint(port)
+		app.debugPortNumber = uint16(p)
+	}
 	return http.ListenAndServe(addr, app)
 }
 

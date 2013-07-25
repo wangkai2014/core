@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"strings"
+	"net"
 	"sync"
 )
 
@@ -78,7 +78,12 @@ func (u Url) Absolute(relative_url string) string {
 func (u Url) AbsoluteHttp(relative_url string) string {
 	c := u.c
 	if c.Req.URL.Host != "" {
-		return "http://" + c.Req.URL.Host + relative_url
+		host := c.Req.URL.Host
+		if c.App.debugTlsPortNumber != uint16(0) {
+			host, _, _ = net.SplitHostPort(host)
+			host = net.JoinHostPort(host, fmt.Sprint(c.App.debugPortNumber))
+		}
+		return "http://" + host + relative_url
 	}
 
 	return relative_url
@@ -92,7 +97,8 @@ func (u Url) AbsoluteHttps(relative_url string) string {
 		protocol := "https://"
 		if c.App.debugTlsPortNumber != uint16(0) {
 			protocol = "http://"
-			host = strings.Split(host, ":")[0] + fmt.Sprint(":", c.App.debugTlsPortNumber)
+			host, _, _ = net.SplitHostPort(host)
+			host = net.JoinHostPort(host, fmt.Sprint(c.App.debugTlsPortNumber))
 		}
 		return protocol + host + relative_url
 	}
