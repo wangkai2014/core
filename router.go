@@ -191,63 +191,21 @@ func (ro RouteReset) View(c *Core) {
 	ro.LoadReset(c)
 }
 
+type RouteAsserter interface {
+	RouteHandler
+	Assert(*Core, RouteHandler)
+}
+
 func (c *Core) RouteDealer(ro RouteHandler) {
-	// Best and Average Case: O(1)
-	// Worst Case: O(n)
+	// Best, Average and Worst Case: O(1)
 	switch t := ro.(type) {
-	case NoDirLock:
-		t.View(c)
 	case MethodInterface:
 		execMethodInterface(c, t)
 	case ProtocolInterface:
 		execProtocolInterface(c, t)
-	case *Router:
-		t.View(c)
-	case *DirRouter:
-		t.View(c)
-	case RouteHandlerFunc:
-		t.View(c)
-	case *VHost:
-		t.View(c)
-	case *VHostRegExp:
-		t.View(c)
-	case HttpRouteHandler:
-		t.View(c)
+	case RouteAsserter:
+		t.Assert(c, ro)
 	default:
-		// 0(n)
-		for _, routeAssert := range _getAsserter() {
-			if routeAssert.Assert(c, ro) {
-				return
-			}
-		}
 		ro.View(c)
 	}
-}
-
-type RouteAsserter interface {
-	Assert(*Core, RouteHandler) bool
-}
-
-type RouteAsserterFunc func(*Core, RouteHandler) bool
-
-func (ra RouteAsserterFunc) Assert(c *Core, ro RouteHandler) bool {
-	return ra(c, ro)
-}
-
-func RegisterRouteAsserter(ra ...RouteAsserter) {
-	_routeAsserter.Lock()
-	defer _routeAsserter.Unlock()
-	_routeAsserter.ro = append(_routeAsserter.ro, ra...)
-}
-
-func RegisterRouteAsserterFunc(ra ...RouteAsserterFunc) {
-	for _, raa := range ra {
-		RegisterRouteAsserter(raa)
-	}
-}
-
-func _getAsserter() []RouteAsserter {
-	_routeAsserter.RLock()
-	defer _routeAsserter.RUnlock()
-	return append([]RouteAsserter{}, _routeAsserter.ro...)
 }
