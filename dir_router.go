@@ -1,6 +1,7 @@
 package core
 
 import (
+	"regexp"
 	"strings"
 	"sync"
 )
@@ -52,6 +53,7 @@ type DirRouter struct {
 	root     RouteHandler
 	asterisk RouteHandler
 	group    string
+	regexp   *regexp.Regexp
 }
 
 func NewDirRouter() *DirRouter {
@@ -98,6 +100,11 @@ func (dir *DirRouter) Asterisk(handler RouteHandler) *DirRouter {
 
 func (dir *DirRouter) AsteriskFunc(Func RouteHandlerFunc) *DirRouter {
 	return dir.Asterisk(Func)
+}
+
+func (dir *DirRouter) RegExp(pattern string) *DirRouter {
+	dir.regexp = regexp.MustCompile(pattern)
+	return dir
 }
 
 func (dir *DirRouter) register(dir_ string, handler RouteHandler) {
@@ -204,6 +211,13 @@ func (dir *DirRouter) View(c *Core) {
 
 	if route == nil {
 		if dir.asterisk != nil {
+			if dir.regexp != nil {
+				if !dir.regexp.MatchString(dirname) {
+					dir.error404(c)
+					return
+				}
+				c.pathDealer(dir.regexp, genericStr(dirname))
+			}
 			dir.asterisk.View(c)
 			return
 		}

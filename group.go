@@ -168,6 +168,12 @@ func (str vHostStr) String() string {
 	return string(str)
 }
 
+type genericStr string
+
+func (str genericStr) String() string {
+	return string(str)
+}
+
 func (c *Core) pathDealer(re *regexp.Regexp, str fmt.Stringer) {
 	names := re.SubexpNames()
 	matches := re.FindStringSubmatch(str.String())
