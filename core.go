@@ -23,6 +23,7 @@ type private struct {
 	session    *SessionAdv
 	secure     bool
 	bodyDump   []byte
+	allowDump  bool
 }
 
 type Public struct {
@@ -78,7 +79,9 @@ func (c *Core) Header() http.Header {
 func (c *Core) Write(data []byte) (int, error) {
 	c.pri.cut = true
 
-	c.pri.bodyDump = append(c.pri.bodyDump, data...)
+	if c.pri.allowDump {
+		c.pri.bodyDump = append(c.pri.bodyDump, data...)
+	}
 
 	if c.pri.firstWrite {
 		if c.Header().Get("Content-Type") == "" {
@@ -95,6 +98,10 @@ func (c *Core) Write(data []byte) (int, error) {
 // Response Body Dump, for Caching Purpose!
 func (c *Core) BodyDump() []byte {
 	return c.pri.bodyDump
+}
+
+func (c *Core) NoDump() {
+	c.pri.allowDump = false
 }
 
 // WriteHeader sends an HTTP response header with status code.

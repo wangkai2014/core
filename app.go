@@ -277,6 +277,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 			firstWrite: true,
 			secure:     secure,
 			bodyDump:   []byte{},
+			allowDump:  true,
 		},
 	}
 
