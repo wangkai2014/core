@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/fcgi"
-	//"os"
 	"sync"
 	"time"
 )
