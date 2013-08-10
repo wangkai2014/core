@@ -59,7 +59,7 @@ func (io_ IO) PushToClientStr(content string) {
 	io_.PushToClient([]byte(content))
 }
 
-// Push Content direct to Client as io.Reader
+// Push Content direct to Client from io.Reader
 func (io_ IO) PushToClientReader(r io.Reader) {
 	io.Copy(io_.c, r)
 }
@@ -90,7 +90,7 @@ func (io_ IO) PullStr(readerName string) string {
 	return string(io_.Pull(readerName))
 }
 
-// Pull Content from A Reader as io.Writer
+// Pull Content from A Reader to io.Writer
 func (io_ IO) PullWriter(readerName string, w io.Writer) {
 	if io_.R(readerName) == nil {
 		return
