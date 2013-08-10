@@ -77,8 +77,9 @@ func (mid _middlewares) Swap(i, j int) {
 
 type Middlewares struct {
 	sync.Mutex
-	items _middlewares
-	c     *Core
+	items  _middlewares
+	c      *Core
+	nohtml bool
 }
 
 // Construct New Middleware
@@ -97,6 +98,21 @@ func (mid *Middlewares) Register(middlewares ...MiddlewareInterface) *Middleware
 	}
 	mid.items = append(mid.items, middlewares...)
 	sort.Sort(mid.items)
+	return mid
+}
+
+// Disable HTML Middleware!
+func (mid *Middlewares) NoHTML() *Middlewares {
+	mid.nohtml = true
+	return mid
+}
+
+// Clear Middlewares
+func (mid *Middlewares) Clear() *Middlewares {
+	if mid.c != nil {
+		return mid
+	}
+	mid.items = nil
 	return mid
 }
 
@@ -124,7 +140,7 @@ func (mid *Middlewares) Init(c *Core) *Middlewares {
 
 // Html
 func (mid *Middlewares) Html() {
-	if mid.c == nil {
+	if mid.c == nil || mid.nohtml {
 		return
 	}
 	for _, middleware := range mid.items {
