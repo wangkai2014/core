@@ -49,6 +49,21 @@ func (io_ IO) PushStr(writerName, content string) {
 	io_.Push(writerName, []byte(content))
 }
 
+// Push Content direct to Client
+func (io_ IO) PushToClient(content []byte) {
+	io.Copy(io_.c, bytes.NewReader(content))
+}
+
+// Push Content direct to Client as string
+func (io_ IO) PushToClientStr(content string) {
+	io_.PushToClient([]byte(content))
+}
+
+// Push Content direct to Client as io.Reader
+func (io_ IO) PushToClientReader(r io.Reader) {
+	io.Copy(io_.c, r)
+}
+
 // Pull Content from a Reader as []byte
 func (io_ IO) Pull(readerName string) []byte {
 	r := io_.R(readerName)
