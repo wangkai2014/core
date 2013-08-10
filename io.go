@@ -90,6 +90,14 @@ func (io_ IO) PullStr(readerName string) string {
 	return string(io_.Pull(readerName))
 }
 
+// Pull Content from A Reader as io.Writer
+func (io_ IO) PullWriter(readerName string, w io.Writer) {
+	if io_.R(readerName) == nil {
+		return
+	}
+	io.Copy(w, io_.R(readerName))
+}
+
 // Copy
 func (io_ IO) Copy(dst io.Writer, src io.Reader) (int64, error) {
 	return io.Copy(dst, src)
