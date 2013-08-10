@@ -122,6 +122,9 @@ func (mid *Middlewares) Init(c *Core) *Middlewares {
 		return mid
 	}
 	middlewares := NewMiddlewares()
+	if mid.nohtml {
+		middlewares.NoHTML()
+	}
 	middlewares.items = _middlewares{}
 	middlewares.c = c
 	for _, middleware := range mid.items {
