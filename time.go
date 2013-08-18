@@ -16,6 +16,7 @@ func CurTime() time.Time {
 	return time.Now()
 }
 
+// Time
 type Time struct {
 	c *Core
 }
@@ -36,6 +37,7 @@ func (t Time) Now() time.Time {
 	return CurTime()
 }
 
+// Time Middleware
 type TimeMiddleware struct {
 	Middleware
 }
