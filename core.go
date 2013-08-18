@@ -26,6 +26,7 @@ type private struct {
 	allowDump  bool
 }
 
+// Strictly Public Variable
 type Public struct {
 	// Error Code
 	Status int
@@ -100,6 +101,7 @@ func (c *Core) BodyDump() []byte {
 	return c.pri.bodyDump
 }
 
+// Disable Body Dumping
 func (c *Core) NoDump() {
 	c.pri.allowDump = false
 }
@@ -150,6 +152,7 @@ func (c *Core) CutOut() bool {
 	return c.pri.cut
 }
 
+// Signal framework to end user request
 func (c *Core) Cut() {
 	c.pri.cut = true
 }

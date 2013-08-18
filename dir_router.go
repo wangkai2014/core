@@ -23,6 +23,7 @@ type NoDirLock struct {
 	RouteHandler
 }
 
+// Implement RouteHandler
 func (nod NoDirLock) View(c *Core) {
 	c.RouteDealer(nod.RouteHandler)
 }
@@ -32,21 +33,7 @@ type dirRoute struct {
 	route   RouteHandler
 }
 
-type dirRoutes []*dirRoute
-
-func (dir dirRoutes) Len() int {
-	return len(dir)
-}
-
-func (dir dirRoutes) Less(i, j int) bool {
-	return dir[i].dirName < dir[j].dirName
-}
-
-func (dir dirRoutes) Swap(i, j int) {
-	dir[i], dir[j] = dir[j], dir[i]
-}
-
-// Dirary Search Router!
+// Directory Search Router!
 type DirRouter struct {
 	sync.RWMutex
 	routes   map[string]*dirRoute
@@ -56,10 +43,12 @@ type DirRouter struct {
 	regexp   *regexp.Regexp
 }
 
+// Construct Directory Router
 func NewDirRouter() *DirRouter {
 	return &DirRouter{routes: map[string]*dirRoute{}}
 }
 
+// Set Root Directory Handler
 func (dir *DirRouter) RootDir(handler RouteHandler) *DirRouter {
 	dir.root = handler
 	return dir
@@ -70,6 +59,7 @@ func (dir *DirRouter) Root(handler RouteHandler) *DirRouter {
 	return dir.RootDir(handler)
 }
 
+// Set Root Directory Function
 func (dir *DirRouter) RootDirFunc(Func RouteHandlerFunc) *DirRouter {
 	return dir.RootDir(Func)
 }
@@ -79,11 +69,13 @@ func (dir *DirRouter) RootFunc(Func RouteHandlerFunc) *DirRouter {
 	return dir.RootDir(Func)
 }
 
+// Set Group Name
 func (dir *DirRouter) Group(group string) *DirRouter {
 	dir.group = group
 	return dir
 }
 
+// Set Asterisk Handler
 func (dir *DirRouter) Asterisk(handler RouteHandler) *DirRouter {
 	switch t := handler.(type) {
 	case *DirRouter:
@@ -98,10 +90,12 @@ func (dir *DirRouter) Asterisk(handler RouteHandler) *DirRouter {
 	return dir
 }
 
+// Set Asterisk Function
 func (dir *DirRouter) AsteriskFunc(Func RouteHandlerFunc) *DirRouter {
 	return dir.Asterisk(Func)
 }
 
+// Set Regular Expression
 func (dir *DirRouter) RegExp(pattern string) *DirRouter {
 	dir.regexp = regexp.MustCompile(pattern)
 	return dir
@@ -129,15 +123,18 @@ func (dir *DirRouter) register(dir_ string, handler RouteHandler) {
 	}
 }
 
+// Register Handler to Directory
 func (dir *DirRouter) Register(dir_ string, handler RouteHandler) *DirRouter {
 	dir.register(dir_, handler)
 	return dir
 }
 
+// Register Function to Directory
 func (dir *DirRouter) RegisterFunc(dir_ string, Func RouteHandlerFunc) *DirRouter {
 	return dir.Register(dir_, Func)
 }
 
+// Register Map of Handler ("dir": handler)
 func (dir *DirRouter) RegisterMap(amap Map) *DirRouter {
 	for dir_, handler := range amap {
 		dir.register(dir_, handler)
@@ -145,6 +142,7 @@ func (dir *DirRouter) RegisterMap(amap Map) *DirRouter {
 	return dir
 }
 
+// Register Map of Functions ("dir": function)
 func (dir *DirRouter) RegisterFuncMap(funcmap FuncMap) *DirRouter {
 	for dir_, handler := range funcmap {
 		dir.register(dir_, handler)
@@ -171,6 +169,7 @@ func (dir *DirRouter) error404(c *Core) {
 	}
 }
 
+// Implement RouteHandler
 func (dir *DirRouter) View(c *Core) {
 	// Check if Root Path
 	if c.pri.path == "" || c.pri.path == "/" {

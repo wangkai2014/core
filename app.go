@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// Structure of Web Application
 type App struct {
 	Name string
 
@@ -76,6 +77,7 @@ type App struct {
 	dataSync sync.RWMutex
 }
 
+// Construct New Application
 func NewApp() *App {
 	app := &App{}
 
@@ -171,6 +173,7 @@ func NewApp() *App {
 	return app
 }
 
+// Get Middlewares, init on nil
 func (app *App) Middlewares(name string) *Middlewares {
 	app.middlewaresSync.Lock()
 	defer app.middlewaresSync.Unlock()
@@ -180,6 +183,7 @@ func (app *App) Middlewares(name string) *Middlewares {
 	return app.middlewares[name]
 }
 
+// Get RegExp Router, init on nil
 func (app *App) Router(name string) *Router {
 	app.routersSync.Lock()
 	defer app.routersSync.Unlock()
@@ -189,6 +193,7 @@ func (app *App) Router(name string) *Router {
 	return app.routers[name]
 }
 
+// Get Url Directory Router, init on nil
 func (app *App) DirRouter(name string) *DirRouter {
 	app.dirRoutersSync.Lock()
 	defer app.dirRoutersSync.Unlock()
@@ -198,6 +203,7 @@ func (app *App) DirRouter(name string) *DirRouter {
 	return app.dirRouters[name]
 }
 
+// Get VHost, init on nil
 func (app *App) VHost(name string) *VHost {
 	app.vHostsSync.Lock()
 	defer app.vHostsSync.Unlock()
@@ -207,6 +213,7 @@ func (app *App) VHost(name string) *VHost {
 	return app.vHosts[name]
 }
 
+// Get VHost (Regular expression), init on nil
 func (app *App) VHostRegExp(name string) *VHostRegExp {
 	app.vHostsRegExpSync.Lock()
 	defer app.vHostsRegExpSync.Unlock()
@@ -216,24 +223,28 @@ func (app *App) VHostRegExp(name string) *VHostRegExp {
 	return app.vHostsRegExp[name]
 }
 
+// Get Data
 func (app *App) Data(name string) interface{} {
 	app.dataSync.RLock()
 	defer app.dataSync.RUnlock()
 	return app.data[name]
 }
 
+// Set Data
 func (app *App) DataSet(name string, data interface{}) {
 	app.dataSync.Lock()
 	defer app.dataSync.Unlock()
 	app.data[name] = data
 }
 
+// Specify File Server
 func (app *App) FileServer(path, dir string) {
 	app.fileServersSync.Lock()
 	defer app.fileServersSync.Unlock()
 	app.fileServers[path] = fileServer(path, dir)
 }
 
+// Implement http.Handler interface
 func (app *App) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	app.serve(res, req, false)
 }
@@ -333,6 +344,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	c.RouteDealer(app.DefaultView)
 }
 
+// Start HTTP Listen
 func (app *App) Listen(addr string) error {
 	if app.Debug {
 		_, port, err := net.SplitHostPort(addr)
@@ -346,6 +358,7 @@ func (app *App) Listen(addr string) error {
 	return http.ListenAndServe(addr, app)
 }
 
+// Start Dummy HTTP TLS Listener
 func (app *App) ListenTLSDummy(port uint16) error {
 	if !app.Debug || port == 0 {
 		return nil
@@ -354,10 +367,12 @@ func (app *App) ListenTLSDummy(port uint16) error {
 	return http.ListenAndServe(fmt.Sprint(":", port), AppSecure{app})
 }
 
+// Start HTTP TLS Listener
 func (app *App) ListenTLS(addr, certFile, keyFile string) error {
 	return http.ListenAndServeTLS(addr, certFile, keyFile, AppSecure{app})
 }
 
+// Start FastCGI Listener
 func (app *App) ListenFCGI(l net.Listener) error {
 	return fcgi.Serve(l, app)
 }

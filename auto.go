@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// Auto Populate Fields, stores expections!
 type AutoPopulateFields []string
 
 func (au AutoPopulateFields) check(name string) bool {
