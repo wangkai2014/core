@@ -3,7 +3,6 @@ package core
 import (
 	"encoding/gob"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -37,11 +36,6 @@ type sessionInterface interface {
 	hit(*Core)
 }
 
-var sessionMap = struct {
-	sync.Mutex
-	m map[string]sessionInterface
-}{m: map[string]sessionInterface{}}
-
 type SessionHandler interface {
 	Set(*Core, interface{})
 	Init(*Core)
@@ -71,10 +65,6 @@ func (_ SessionMemory) Set(c *Core, data interface{}) {
 	c.App.sessionMap[sesCookie.Value] = &session{data, time.Now().Add(c.App.SessionExpire)}
 }
 
-func deleteSessionFromMap(key string) {
-	delete(sessionMap.m, key)
-}
-
 func (_ SessionMemory) Init(c *Core) {
 	c.App.sessionMapSync.Lock()
 	defer c.App.sessionMapSync.Unlock()
@@ -84,7 +74,7 @@ func (_ SessionMemory) Init(c *Core) {
 		return
 	}
 
-	if t, ok := sessionMap.m[sesCookie.Value].(*session); ok {
+	if t, ok := c.App.sessionMap[sesCookie.Value].(*session); ok {
 		if time.Now().Unix() < t.getExpire().Unix() {
 			c.Pub.Session = t.getData()
 			t.hit(c)
@@ -92,21 +82,21 @@ func (_ SessionMemory) Init(c *Core) {
 		}
 	}
 
-	deleteSessionFromMap(sesCookie.Value)
+	delete(c.App.sessionMap, sesCookie.Value)
 	c.Cookie(sesCookie.Name).Delete()
 }
 
 func (_ SessionMemory) Destroy(c *Core) {
-	sessionMap.Lock()
-	defer sessionMap.Unlock()
+	c.App.sessionMapSync.Lock()
+	defer c.App.sessionMapSync.Unlock()
 
 	sesCookie, err := c.Cookie(c.App.SessionCookieName.String()).Get()
 	if err != nil {
 		return
 	}
 
-	if _, ok := sessionMap.m[sesCookie.Value].(*session); ok {
-		deleteSessionFromMap(sesCookie.Value)
+	if _, ok := c.App.sessionMap[sesCookie.Value].(*session); ok {
+		delete(c.App.sessionMap, sesCookie.Value)
 	}
 
 	c.Cookie(sesCookie.Name).Delete()
