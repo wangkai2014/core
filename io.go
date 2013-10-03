@@ -25,8 +25,8 @@ func (io_ IO) R(name string) io.Reader {
 	return io_.c.Pub.Readers[name]
 }
 
-// Copy from Reader to Writer
-func (io_ IO) CopyRtoW(readerName, writerName string) {
+// Push from Reader to Writer
+func (io_ IO) PushRtoW(readerName, writerName string) {
 	r := io_.R(readerName)
 	w := io_.W(writerName)
 	if r == nil || w == nil {
@@ -107,7 +107,7 @@ func (io_ IO) PullWriter(readerName string, w io.Writer) {
 	io.Copy(w, io_.R(readerName))
 }
 
-// Copy
-func (io_ IO) Copy(dst io.Writer, src io.Reader) (int64, error) {
+// Push Io
+func (io_ IO) PushIO(dst io.Writer, src io.Reader) (int64, error) {
 	return io.Copy(dst, src)
 }
