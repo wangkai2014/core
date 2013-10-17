@@ -148,12 +148,12 @@ func (c *Core) Flush() {
 }
 
 // true if output was sent to client, otherwise false!
-func (c *Core) CutOut() bool {
+func (c *Core) Terminated() bool {
 	return c.pri.cut
 }
 
 // Signal framework to end user request
-func (c *Core) Cut() {
+func (c *Core) Terminate() {
 	c.pri.cut = true
 }
 

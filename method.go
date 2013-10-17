@@ -22,7 +22,7 @@ func execMethodInterface(c *Core, me MethodInterface) {
 
 	(AutoPopulateFields{"C"}).Do(c, vc)
 
-	if c.CutOut() {
+	if c.Terminated() {
 		return
 	}
 
@@ -30,7 +30,7 @@ func execMethodInterface(c *Core, me MethodInterface) {
 	method := vc.MethodByName("Prepare")
 	method.Call(in)
 
-	if c.CutOut() {
+	if c.Terminated() {
 		return
 	}
 
@@ -39,7 +39,7 @@ func execMethodInterface(c *Core, me MethodInterface) {
 	if is.WebSocketRequest() {
 		method = vc.MethodByName("Ws")
 		method.Call(in)
-		if c.CutOut() {
+		if c.Terminated() {
 			goto finish
 		}
 	}
@@ -54,7 +54,7 @@ func execMethodInterface(c *Core, me MethodInterface) {
 	if is.AjaxRequest() {
 		method = vc.MethodByName("Ajax")
 		method.Call(in)
-		if c.CutOut() {
+		if c.Terminated() {
 			goto finish
 		}
 	}

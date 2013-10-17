@@ -148,7 +148,7 @@ func (mid *Middlewares) Html() {
 	}
 	for _, middleware := range mid.items {
 		middleware.Html()
-		if mid.c.CutOut() {
+		if mid.c.Terminated() {
 			return
 		}
 	}
@@ -161,7 +161,7 @@ func (mid *Middlewares) Pre() {
 	}
 	for key, middleware := range mid.items {
 		middleware.Pre()
-		if mid.c.CutOut() {
+		if mid.c.Terminated() {
 			mid.items = mid.items[:key+1]
 			return
 		}

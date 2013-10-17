@@ -28,7 +28,7 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 	tag := ""
 
 	p := func(v interface{}) interface{} {
-		if tag != "positive" || c.CutOut() {
+		if tag != "positive" || c.Terminated() {
 			return v
 		}
 
@@ -108,7 +108,7 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 		default:
 			autoPopulateFieldByContext(c, field, name)
 		}
-		if c.CutOut() {
+		if c.Terminated() {
 			return
 		}
 	}

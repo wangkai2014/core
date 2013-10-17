@@ -140,7 +140,7 @@ func NewApp() *App {
 		appMiddlewares := app.Middlewares("app").Init(c)
 		defer appMiddlewares.Post()
 		appMiddlewares.Pre()
-		if c.CutOut() {
+		if c.Terminated() {
 			return
 		}
 
@@ -322,7 +322,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	mainMiddleware := app.Middlewares("main").Init(c)
 	defer func() {
 		mainMiddleware.Post()
-		if !c.CutOut() && c.Req.Method != "HEAD" {
+		if !c.Terminated() && c.Req.Method != "HEAD" {
 			panic(ErrorStr("No Output was sent to Client!"))
 		}
 	}()
@@ -331,13 +331,13 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 
 	mainMiddleware.Html()
 
-	if c.CutOut() {
+	if c.Terminated() {
 		return
 	}
 
 	mainMiddleware.Pre()
 
-	if c.CutOut() {
+	if c.Terminated() {
 		return
 	}
 
