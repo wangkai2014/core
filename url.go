@@ -154,17 +154,3 @@ func (u Url) RedirectHttps(relative_url string) {
 	defer u.c.WriteHeader(u.code303())
 	u.c.Header().Set("Location", u.AbsoluteHttps(relative_url))
 }
-
-type URLReverseMiddleware struct {
-	Middleware
-}
-
-func (url *URLReverseMiddleware) Html() {
-	url.C.Pub.HtmlFunc["url"] = func(name string, a ...interface{}) string {
-		return url.C.App.URLRev.Print(name, a...)
-	}
-}
-
-func init() {
-	MainMiddlewares.Register(&URLReverseMiddleware{})
-}

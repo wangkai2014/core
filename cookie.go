@@ -7,26 +7,6 @@ import (
 	"time"
 )
 
-type CookieMiddleware struct {
-	Middleware
-}
-
-func (co *CookieMiddleware) Html() {
-	c := co.C
-	// Get Cookie Value
-	c.Pub.HtmlFunc["cookie"] = func(name string) string {
-		cookie, err := c.Cookie(name).Get()
-		if err != nil {
-			return ""
-		}
-		return cookie.Value
-	}
-}
-
-func init() {
-	MainMiddlewares.Register(&CookieMiddleware{})
-}
-
 // Chainable version of 'net/http.Cookie'
 type Cookie struct {
 	core *Core

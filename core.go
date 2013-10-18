@@ -2,7 +2,6 @@ package core
 
 import (
 	"bufio"
-	html "html/template"
 	"io"
 	"net"
 	"net/http"
@@ -19,7 +18,6 @@ type private struct {
 	reswrite   io.Writer
 	cut        bool
 	firstWrite bool
-	html       *htmlDefault
 	session    *SessionAdv
 	secure     bool
 	bodyDump   []byte
@@ -36,8 +34,6 @@ type Public struct {
 	ContextStr map[string]string
 	// Used by router for storing data of named group in RegExpRule
 	Group Group
-	// Function to load in html template system.
-	HtmlFunc html.FuncMap
 	// For holding session!
 	Session interface{}
 	// Errors
@@ -166,24 +162,4 @@ func (c *Core) debuginfo() {
 		c.Req.Host, c.Req.URL.Path,
 		c.Req.URL.RawQuery, c.Req.RemoteAddr)
 	ErrPrintln()
-}
-
-// Debug Middleware, Add HTML Function to template!
-type DebugMiddleware struct {
-	Middleware
-}
-
-func (de *DebugMiddleware) Html() {
-	c := de.C
-	c.Pub.HtmlFunc["Debug"] = func() bool {
-		return de.C.App.Debug
-	}
-
-	c.Pub.HtmlFunc["NotDebug"] = func() bool {
-		return !de.C.App.Debug
-	}
-}
-
-func init() {
-	MainMiddlewares.Register(&DebugMiddleware{})
 }

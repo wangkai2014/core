@@ -9,7 +9,6 @@ import (
 // Middleware Interface
 type MiddlewareInterface interface {
 	Init(*Core)
-	Html()
 	Pre()
 	Post()
 	Priority() int
@@ -27,11 +26,6 @@ type Middleware struct {
 // Init
 func (mid *Middleware) Init(c *Core) {
 	mid.C = c
-}
-
-// Html
-func (mid *Middleware) Html() {
-	// Do nothing
 }
 
 // Pre boot
@@ -77,9 +71,8 @@ func (mid _middlewares) Swap(i, j int) {
 
 type Middlewares struct {
 	sync.Mutex
-	items  _middlewares
-	c      *Core
-	nohtml bool
+	items _middlewares
+	c     *Core
 }
 
 // Construct New Middleware
@@ -101,12 +94,6 @@ func (mid *Middlewares) Register(middlewares ...MiddlewareInterface) *Middleware
 	return mid
 }
 
-// Disable HTML Middleware!
-func (mid *Middlewares) NoHTML() *Middlewares {
-	mid.nohtml = true
-	return mid
-}
-
 // Clear Middlewares
 func (mid *Middlewares) Clear() *Middlewares {
 	if mid.c != nil {
@@ -122,9 +109,7 @@ func (mid *Middlewares) Init(c *Core) *Middlewares {
 		return mid
 	}
 	middlewares := NewMiddlewares()
-	if mid.nohtml {
-		middlewares.NoHTML()
-	}
+
 	middlewares.items = _middlewares{}
 	middlewares.c = c
 	for _, middleware := range mid.items {
@@ -139,19 +124,6 @@ func (mid *Middlewares) Init(c *Core) *Middlewares {
 		middlewares.items = append(middlewares.items, newmiddleware)
 	}
 	return middlewares
-}
-
-// Html
-func (mid *Middlewares) Html() {
-	if mid.c == nil || mid.nohtml {
-		return
-	}
-	for _, middleware := range mid.items {
-		middleware.Html()
-		if mid.c.Terminated() {
-			return
-		}
-	}
 }
 
 // Pre boot

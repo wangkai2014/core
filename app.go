@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	html "html/template"
 	"io"
 	"net"
 	"net/http"
@@ -266,7 +265,6 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 			Context:     map[string]interface{}{},
 			ContextStr:  map[string]string{},
 			Group:       Group{},
-			HtmlFunc:    html.FuncMap{},
 			Session:     nil,
 			TimeLoc:     app.TimeLoc,
 			TimeFormat:  app.TimeFormat.String(),
@@ -328,8 +326,6 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	}()
 
 	defer c.recover()
-
-	mainMiddleware.Html()
 
 	if c.Terminated() {
 		return

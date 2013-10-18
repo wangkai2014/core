@@ -28,7 +28,7 @@ func (mid *MiddlewareDummy2) Priority() int {
 
 func (mid *MiddlewareDummy2) Pre() {
 	mid.C.Pub.Group.Set("result", "PRE2")
-	mid.C.Cut()
+	mid.C.Terminate()
 }
 
 func (mid *MiddlewareDummy2) Post() {
