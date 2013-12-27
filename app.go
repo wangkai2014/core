@@ -351,7 +351,9 @@ func (app *App) Listen(addr string) error {
 		p, _ := toUint(port)
 		app.debugPortNumber = uint16(p)
 	}
-	return http.ListenAndServe(addr, app)
+	mux := http.NewServeMux()
+	mux.Handle("/", app)
+	return http.ListenAndServe(addr, mux)
 }
 
 // Start Dummy HTTP TLS Listener
@@ -360,17 +362,23 @@ func (app *App) ListenTLSDummy(port uint16) error {
 		return nil
 	}
 	app.debugTlsPortNumber = port
-	return http.ListenAndServe(fmt.Sprint(":", port), AppSecure{app})
+	mux := http.NewServeMux()
+	mux.Handle("/", AppSecure{app})
+	return http.ListenAndServe(fmt.Sprint(":", port), mux)
 }
 
 // Start HTTP TLS Listener
 func (app *App) ListenTLS(addr, certFile, keyFile string) error {
-	return http.ListenAndServeTLS(addr, certFile, keyFile, AppSecure{app})
+	mux := http.NewServeMux()
+	mux.Handle("/", AppSecure{app})
+	return http.ListenAndServeTLS(addr, certFile, keyFile, mux)
 }
 
 // Start FastCGI Listener
 func (app *App) ListenFCGI(l net.Listener) error {
-	return fcgi.Serve(l, app)
+	mux := http.NewServeMux()
+	mux.Handle("/", app)
+	return fcgi.Serve(l, mux)
 }
 
 // A Secure Adapter for App!
