@@ -303,19 +303,21 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 
 	c.debuginfo()
 
-	c.App.fileServersSync.Lock()
-	for dir, fileServer := range c.App.fileServers {
-		if len(c.pri.path) < len(dir) {
-			continue
-		}
+	if app.Debug {
+		c.App.fileServersSync.Lock()
+		for dir, fileServer := range c.App.fileServers {
+			if len(c.pri.path) < len(dir) {
+				continue
+			}
 
-		if dir == c.pri.path[:len(dir)] {
-			c.App.fileServersSync.Unlock()
-			fileServer.View(c)
-			return
+			if dir == c.pri.path[:len(dir)] {
+				c.App.fileServersSync.Unlock()
+				fileServer.View(c)
+				return
+			}
 		}
+		c.App.fileServersSync.Unlock()
 	}
-	c.App.fileServersSync.Unlock()
 
 	mainMiddleware := app.Middlewares("main").Init(c)
 	defer func() {
