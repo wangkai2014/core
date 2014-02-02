@@ -301,7 +301,9 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 		return
 	}
 
-	c.debuginfo()
+	if app.Debug {
+		defer c.debuginfo()
+	}
 
 	if app.Debug {
 		c.App.fileServersSync.Lock()

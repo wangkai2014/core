@@ -154,11 +154,8 @@ func (c *Core) Terminate() {
 }
 
 func (c *Core) debuginfo() {
-	if !c.App.Debug {
-		return
-	}
-	ErrPrintf("%s, %s, %s, %s, ?%s IP:%s",
-		c.Req.Proto, c.Req.Method,
+	ErrPrintf("%s, %s, %d, %s, %s, ?%s IP:%s,",
+		c.Req.Proto, c.Req.Method, c.Pub.Status,
 		c.Req.Host, c.Req.URL.Path,
 		c.Req.URL.RawQuery, c.Req.RemoteAddr)
 	ErrPrintln()
