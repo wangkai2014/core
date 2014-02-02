@@ -116,6 +116,8 @@ func (c *Core) WriteHeader(num int) {
 		c.pri.firstWrite = false
 	}
 
+	c.Pub.Status = num
+
 	c.rw.WriteHeader(num)
 }
 
