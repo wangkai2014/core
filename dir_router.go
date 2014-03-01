@@ -188,7 +188,7 @@ func (dir *DirRouter) View(c *Core) {
 	var dirname string
 	if pos == -1 {
 		dirname = c.pri.path
-		c.pri.curpath = dirname
+		c.pri.curpath += dirname
 		c.pri.path = ""
 	} else {
 		dirname = c.pri.path[:pos]
