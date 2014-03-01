@@ -158,7 +158,7 @@ func (c *Core) Terminate() {
 func (c *Core) debuginfo() {
 	ErrPrintf("%s, %s, %d, %s, %s, ?%s IP:%s, %v",
 		c.Req.Proto, c.Req.Method, c.Pub.Status,
-		c.Req.Host, c.Req.URL.Path,
+		c.Req.Host, c.Http().Path(),
 		c.Req.URL.RawQuery, c.Req.RemoteAddr, time.Now())
 	ErrPrintln()
 }
