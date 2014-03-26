@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func ExampleCore_Http(c *Core) {
+func ExampleContext_Http(c *Context) {
 	// Dummy Cookie
 	cookie := &http.Cookie{Name: "hello"}
 

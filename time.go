@@ -18,10 +18,10 @@ func CurTime() time.Time {
 
 // Time
 type Time struct {
-	c *Core
+	c *Context
 }
 
-func (c *Core) Time() Time {
+func (c *Context) Time() Time {
 	return Time{c}
 }
 

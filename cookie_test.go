@@ -1,6 +1,6 @@
 package core
 
-func ExampleCore_Cookie(c *Core) {
+func ExampleContext_Cookie(c *Context) {
 	// Setting a Cookie, Expires in a Month.
 	c.Cookie("Example").Value("Example").Month().SaveRes()
 

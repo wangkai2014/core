@@ -14,7 +14,7 @@ type routerItem struct {
 
 // Route Handler Interface
 type RouteHandler interface {
-	View(*Core)
+	View(*Context)
 }
 
 // Route Handler Func Map
@@ -106,7 +106,7 @@ func (ro *Router) RegisterMap(_map Map) *Router {
 	return ro
 }
 
-func (ro *Router) load(c *Core, reset bool) bool {
+func (ro *Router) load(c *Context, reset bool) bool {
 	if reset {
 		c.pri.path = c.Http().Path()
 		c.pri.curpath = ""
@@ -125,7 +125,7 @@ func (ro *Router) load(c *Core, reset bool) bool {
 	return false
 }
 
-func (ro *Router) debug(c *Core) {
+func (ro *Router) debug(c *Context) {
 	c.Pub.Status = 404
 	out := c.Fmt()
 	out.Print("404 Not Found\r\n\r\n")
@@ -137,7 +137,7 @@ func (ro *Router) debug(c *Core) {
 }
 
 // Try to load matching route, output 404 on fail!
-func (ro *Router) Load(c *Core) {
+func (ro *Router) Load(c *Context) {
 	if ro.load(c, false) {
 		return
 	}
@@ -155,7 +155,7 @@ func (ro *Router) Load(c *Core) {
 }
 
 // Reset to root and try to load matching route, output 404 on fail!
-func (ro *Router) LoadReset(c *Core) {
+func (ro *Router) LoadReset(c *Context) {
 	if ro.load(c, true) {
 		return
 	}
@@ -173,30 +173,30 @@ func (ro *Router) LoadReset(c *Core) {
 }
 
 // Router View
-func (ro *Router) View(c *Core) {
+func (ro *Router) View(c *Context) {
 	ro.Load(c)
 }
 
 // Implement RouteHandler interface!
-type RouteHandlerFunc func(*Core)
+type RouteHandlerFunc func(*Context)
 
-func (fn RouteHandlerFunc) View(c *Core) {
+func (fn RouteHandlerFunc) View(c *Context) {
 	fn(c)
 }
 
 // Reset Url, Implement RouteHandler interface!
 type RouteReset struct{ *Router }
 
-func (ro RouteReset) View(c *Core) {
+func (ro RouteReset) View(c *Context) {
 	ro.LoadReset(c)
 }
 
 type RouteAsserter interface {
 	RouteHandler
-	Assert(*Core, RouteHandler)
+	Assert(*Context, RouteHandler)
 }
 
-func (c *Core) RouteDealer(ro RouteHandler) {
+func (c *Context) RouteDealer(ro RouteHandler) {
 	// Best, Average and Worst Case: O(1)
 	switch t := ro.(type) {
 	case MethodInterface:

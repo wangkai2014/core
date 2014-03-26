@@ -23,7 +23,7 @@ func (ses *session) getExpire() time.Time {
 }
 
 // Reset Expiry Time to 20 minutes in advanced!
-func (ses *session) hit(c *Core) {
+func (ses *session) hit(c *Context) {
 	ses.Expire = time.Now().Add(c.App.SessionExpire)
 }
 
@@ -33,19 +33,19 @@ func (ses *session) hit(c *Core) {
 type sessionInterface interface {
 	getData() interface{}
 	getExpire() time.Time
-	hit(*Core)
+	hit(*Context)
 }
 
 type SessionHandler interface {
-	Set(*Core, interface{})
-	Init(*Core)
-	Destroy(*Core)
+	Set(*Context, interface{})
+	Init(*Context)
+	Destroy(*Context)
 }
 
 // Store Session to Memory
 type SessionMemory struct{}
 
-func (_ SessionMemory) Set(c *Core, data interface{}) {
+func (_ SessionMemory) Set(c *Context, data interface{}) {
 	c.App.sessionMapSync.Lock()
 	defer c.App.sessionMapSync.Unlock()
 
@@ -65,7 +65,7 @@ func (_ SessionMemory) Set(c *Core, data interface{}) {
 	c.App.sessionMap[sesCookie.Value] = &session{data, time.Now().Add(c.App.SessionExpire)}
 }
 
-func (_ SessionMemory) Init(c *Core) {
+func (_ SessionMemory) Init(c *Context) {
 	c.App.sessionMapSync.Lock()
 	defer c.App.sessionMapSync.Unlock()
 
@@ -86,7 +86,7 @@ func (_ SessionMemory) Init(c *Core) {
 	c.Cookie(sesCookie.Name).Delete()
 }
 
-func (_ SessionMemory) Destroy(c *Core) {
+func (_ SessionMemory) Destroy(c *Context) {
 	c.App.sessionMapSync.Lock()
 	defer c.App.sessionMapSync.Unlock()
 
@@ -109,7 +109,7 @@ type SessionFile struct {
 	Path string
 }
 
-func (se SessionFile) Set(c *Core, data interface{}) {
+func (se SessionFile) Set(c *Context, data interface{}) {
 	sessionCookieName := c.App.SessionCookieName.String()
 	sesCookie, err := c.Cookie(sessionCookieName).Get()
 
@@ -128,7 +128,7 @@ func (se SessionFile) Set(c *Core, data interface{}) {
 	}
 }
 
-func (se SessionFile) Init(c *Core) {
+func (se SessionFile) Init(c *Context) {
 	sesCookie, err := c.Cookie(c.App.SessionCookieName.String()).Get()
 	if err != nil {
 		return
@@ -156,7 +156,7 @@ func (se SessionFile) Init(c *Core) {
 	c.Cookie(sesCookie.Name).Delete()
 }
 
-func (se SessionFile) Destroy(c *Core) {
+func (se SessionFile) Destroy(c *Context) {
 	sesCookie, err := c.Cookie(c.App.SessionCookieName.String()).Get()
 	if err != nil {
 		return
@@ -167,15 +167,15 @@ func (se SessionFile) Destroy(c *Core) {
 }
 
 // Init Session
-func (c *Core) initSession() {
+func (c *Context) initSession() {
 	c.App.SessionHandler.Init(c)
 }
 
 type Session struct {
-	c *Core
+	c *Context
 }
 
-func (c *Core) Session() Session {
+func (c *Context) Session() Session {
 	return Session{c}
 }
 

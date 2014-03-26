@@ -87,7 +87,7 @@ func (pa mustGroup) Get(name string) string {
 	return pa[name]
 }
 
-func (pa mustGroup) GetInt64(name string, c *Core) int64 {
+func (pa mustGroup) GetInt64(name string, c *Context) int64 {
 	num := int64(0)
 	var err error
 	num, err = toInt(pa[name])
@@ -98,23 +98,23 @@ func (pa mustGroup) GetInt64(name string, c *Core) int64 {
 	return num
 }
 
-func (pa mustGroup) GetInt(name string, c *Core) int {
+func (pa mustGroup) GetInt(name string, c *Context) int {
 	return int(pa.GetInt64(name, c))
 }
 
-func (pa mustGroup) GetInt32(name string, c *Core) int32 {
+func (pa mustGroup) GetInt32(name string, c *Context) int32 {
 	return int32(pa.GetInt64(name, c))
 }
 
-func (pa mustGroup) GetInt16(name string, c *Core) int16 {
+func (pa mustGroup) GetInt16(name string, c *Context) int16 {
 	return int16(pa.GetInt64(name, c))
 }
 
-func (pa mustGroup) GetInt8(name string, c *Core) int8 {
+func (pa mustGroup) GetInt8(name string, c *Context) int8 {
 	return int8(pa.GetInt64(name, c))
 }
 
-func (pa mustGroup) GetUint64(name string, c *Core) uint64 {
+func (pa mustGroup) GetUint64(name string, c *Context) uint64 {
 	num := uint64(0)
 	var err error
 	num, err = toUint(pa[name])
@@ -125,23 +125,23 @@ func (pa mustGroup) GetUint64(name string, c *Core) uint64 {
 	return num
 }
 
-func (pa mustGroup) GetUint(name string, c *Core) uint {
+func (pa mustGroup) GetUint(name string, c *Context) uint {
 	return uint(pa.GetUint64(name, c))
 }
 
-func (pa mustGroup) GetUint32(name string, c *Core) uint32 {
+func (pa mustGroup) GetUint32(name string, c *Context) uint32 {
 	return uint32(pa.GetUint64(name, c))
 }
 
-func (pa mustGroup) GetUint16(name string, c *Core) uint16 {
+func (pa mustGroup) GetUint16(name string, c *Context) uint16 {
 	return uint16(pa.GetUint64(name, c))
 }
 
-func (pa mustGroup) GetUint8(name string, c *Core) uint8 {
+func (pa mustGroup) GetUint8(name string, c *Context) uint8 {
 	return uint8(pa.GetUint64(name, c))
 }
 
-func (pa mustGroup) GetFloat64(name string, c *Core) float64 {
+func (pa mustGroup) GetFloat64(name string, c *Context) float64 {
 	num := float64(0)
 	var err error
 	num, err = toFloat(pa[name])
@@ -152,7 +152,7 @@ func (pa mustGroup) GetFloat64(name string, c *Core) float64 {
 	return num
 }
 
-func (pa mustGroup) GetFloat32(name string, c *Core) float32 {
+func (pa mustGroup) GetFloat32(name string, c *Context) float32 {
 	return float32(pa.GetFloat64(name, c))
 }
 
@@ -174,7 +174,7 @@ func (str genericStr) String() string {
 	return string(str)
 }
 
-func (c *Core) pathDealer(re *regexp.Regexp, str fmt.Stringer) {
+func (c *Context) pathDealer(re *regexp.Regexp, str fmt.Stringer) {
 	names := re.SubexpNames()
 	matches := re.FindStringSubmatch(str.String())
 

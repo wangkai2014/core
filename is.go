@@ -1,10 +1,10 @@
 package core
 
 type Is struct {
-	c *Core
+	c *Context
 }
 
-func (c *Core) Is() Is {
+func (c *Context) Is() Is {
 	return Is{c}
 }
 

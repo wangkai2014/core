@@ -60,10 +60,10 @@ type App struct {
 
 	URLRev *URLReverse
 
-	Error403 func(c *Core)
-	Error404 func(c *Core)
-	Error405 func(c *Core)
-	Error500 func(c *Core)
+	Error403 func(c *Context)
+	Error404 func(c *Context)
+	Error405 func(c *Context)
+	Error500 func(c *Context)
 
 	regExpCache regExpCacheSystem
 
@@ -131,11 +131,11 @@ func NewApp() *App {
 
 	app.DefaultRouter = app.Router("main")
 
-	app.Router("main").RegisterFunc(`^/?$`, func(c *Core) {
+	app.Router("main").RegisterFunc(`^/?$`, func(c *Context) {
 		c.Fmt().Print("<h1>Hello World!</h1>")
 	})
 
-	app.DefaultView = RouteHandlerFunc(func(c *Core) {
+	app.DefaultView = RouteHandlerFunc(func(c *Context) {
 		appMiddlewares := app.Middlewares("app").Init(c)
 		defer appMiddlewares.Post()
 		appMiddlewares.Pre()
@@ -148,16 +148,16 @@ func NewApp() *App {
 
 	app.URLRev = &URLReverse{}
 
-	app.Error403 = func(c *Core) {
+	app.Error403 = func(c *Context) {
 		c.Fmt().Print("<h1>403 Forbidden</h1>")
 	}
-	app.Error404 = func(c *Core) {
+	app.Error404 = func(c *Context) {
 		c.Fmt().Print("<h1>404 Not Found</h1>")
 	}
-	app.Error405 = func(c *Core) {
+	app.Error405 = func(c *Context) {
 		c.Fmt().Print("<h1>405 Method Not Allowed</h1>")
 	}
-	app.Error500 = func(c *Core) {
+	app.Error500 = func(c *Context) {
 		c.Fmt().Print("<h1>500 Internal Server Error</h1>")
 	}
 
@@ -256,14 +256,13 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 		}
 	}
 
-	c := &Core{
+	c := &Context{
 		App: app,
-		rw:  res.(rw),
 		Req: req,
 		Pub: Public{
 			Status:      http.StatusOK,
-			Context:     map[string]interface{}{},
-			ContextStr:  map[string]string{},
+			Data:        map[string]interface{}{},
+			DataStr:     map[string]string{},
 			Group:       Group{},
 			Session:     nil,
 			TimeLoc:     app.TimeLoc,
@@ -284,10 +283,10 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 			cut:        false,
 			firstWrite: true,
 			secure:     secure,
-			bodyDump:   []byte{},
-			allowDump:  true,
 		},
 	}
+
+	c.Res = Res{res.(rw), c}
 
 	c.initWriter()
 	c.initTrueHost()

@@ -23,17 +23,17 @@ func toFloat(number string) (float64, error) {
 	return strconv.ParseFloat(number, 64)
 }
 
-func (c *Core) initWriter() {
+func (c *Context) initWriter() {
 	if c.Req.Method == "HEAD" {
 		c.pri.reswrite = ioutil.Discard
-		c.Header().Set("Connection", "close")
+		c.Res.Header().Set("Connection", "close")
 		return
 	}
-	c.pri.reswrite = c.rw
-	c.Header().Set("Content-Encoding", "plain")
+	c.pri.reswrite = c.Res.rw
+	c.Res.Header().Set("Content-Encoding", "plain")
 }
 
-func (c *Core) initTrueHost() {
+func (c *Context) initTrueHost() {
 	switch {
 	case c.Req.Header.Get("Host") != "":
 		c.Req.Host = c.Req.Header.Get("Host")
@@ -45,7 +45,7 @@ func (c *Core) initTrueHost() {
 	c.Req.URL.Host = c.Req.Host
 }
 
-func (c *Core) initTrueRemoteAddr() {
+func (c *Context) initTrueRemoteAddr() {
 	address := ""
 
 	switch {
@@ -60,7 +60,7 @@ func (c *Core) initTrueRemoteAddr() {
 	}
 }
 
-func (c *Core) initTruePath() {
+func (c *Context) initTruePath() {
 	switch {
 	case c.Req.Header.Get("X-Original-Url") != "":
 		// For compatibility with IIS
@@ -76,7 +76,7 @@ func (c *Core) initTruePath() {
 	}
 }
 
-func (c *Core) initSecure() {
+func (c *Context) initSecure() {
 	if c.Req.Header.Get("X-Secure-Mode") != "" {
 		c.Req.Proto = "S" + c.Req.Proto
 		c.Req.Header.Del("X-Secure-Mode")
@@ -84,7 +84,7 @@ func (c *Core) initSecure() {
 }
 
 // Get Remote Address (IP Address) without port number!
-func (c *Core) RemoteAddr() string {
+func (c *Context) RemoteAddr() string {
 	ip, _, _ := net.SplitHostPort(c.Req.RemoteAddr)
 	return ip
 }

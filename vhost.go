@@ -41,7 +41,7 @@ func (v *VHost) Register(hosts Map) *VHost {
 	return v
 }
 
-func (v *VHost) View(c *Core) {
+func (v *VHost) View(c *Context) {
 	curHostName := c.Req.Host
 	if host, _, err := net.SplitHostPort(curHostName); err == nil {
 		curHostName = host
@@ -125,7 +125,7 @@ func (vh *VHostRegExp) Register(hostmap Map) *VHostRegExp {
 	return vh
 }
 
-func (vh *VHostRegExp) View(c *Core) {
+func (vh *VHostRegExp) View(c *Context) {
 	for _, host := range vh.vhost {
 		if !host.RegExpComplied.MatchString(c.Req.Host) {
 			continue

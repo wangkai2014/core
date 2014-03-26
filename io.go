@@ -7,11 +7,11 @@ import (
 
 // Buffer Shortcut! (c.Pub.Readers and c.Pub.Writers)
 type IO struct {
-	c *Core
+	c *Context
 }
 
 // Buffer Shortcut!
-func (c *Core) IO() IO {
+func (c *Context) IO() IO {
 	return IO{c}
 }
 
@@ -60,7 +60,7 @@ func (io_ IO) PushReader(writerName string, r io.Reader) {
 
 // Push Content direct to Client
 func (io_ IO) PushToClient(content []byte) {
-	io.Copy(io_.c, bytes.NewReader(content))
+	io.Copy(io_.c.Res, bytes.NewReader(content))
 }
 
 // Push Content direct to Client as string
@@ -70,7 +70,7 @@ func (io_ IO) PushToClientStr(content string) {
 
 // Push Content direct to Client from io.Reader
 func (io_ IO) PushToClientReader(r io.Reader) {
-	io.Copy(io_.c, r)
+	io.Copy(io_.c.Res, r)
 }
 
 // Pull Content from a Reader as []byte

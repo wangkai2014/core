@@ -12,15 +12,15 @@ func TestVhost(t *testing.T) {
 
 	App.Debug = true
 
-	pass := RouteHandlerFunc(func(c *Core) {
+	pass := RouteHandlerFunc(func(c *Context) {
 		// Do nothing, because it's a pass
 	})
 
-	fail := RouteHandlerFunc(func(c *Core) {
+	fail := RouteHandlerFunc(func(c *Context) {
 		t.Fail()
 	})
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		c.Pub.Errors.E403 = fail
 		c.Pub.Errors.E404 = fail
 		c.Pub.Errors.E500 = fail
@@ -56,23 +56,23 @@ func TestVhostRegExp(t *testing.T) {
 
 	App.Debug = true
 
-	possible_pass := RouteHandlerFunc(func(c *Core) {
+	possible_pass := RouteHandlerFunc(func(c *Context) {
 		if c.Pub.Group.Get("subdomain") != "hello" {
 			t.Fail()
 			fmt.Println(c.Req.Host)
 		}
 	})
 
-	pass := RouteHandlerFunc(func(c *Core) {
+	pass := RouteHandlerFunc(func(c *Context) {
 		// Do nothing, because it's a pass
 	})
 
-	fail := RouteHandlerFunc(func(c *Core) {
+	fail := RouteHandlerFunc(func(c *Context) {
 		t.Fail()
 		fmt.Println(c.Req.Host)
 	})
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		c.Pub.Errors.E403 = fail
 		c.Pub.Errors.E404 = fail
 		c.Pub.Errors.E500 = fail

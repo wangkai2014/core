@@ -9,16 +9,16 @@ import (
 )
 
 type Http struct {
-	c *Core
+	c *Context
 }
 
-func (c *Core) Http() Http {
+func (c *Context) Http() Http {
 	return Http{c}
 }
 
 // Set Cookie
 func (h Http) SetCookie(cookie *http.Cookie) {
-	http.SetCookie(h.c, cookie)
+	http.SetCookie(h.c.Res, cookie)
 }
 
 // Get Cookie
@@ -28,7 +28,7 @@ func (h Http) GetCookie(name string) (*http.Cookie, error) {
 
 // Execute Handler
 func (h Http) Exec(handler http.Handler) {
-	http.StripPrefix(h.c.pri.curpath, handler).ServeHTTP(h.c, h.c.Req)
+	http.StripPrefix(h.c.pri.curpath, handler).ServeHTTP(h.c.Res, h.c.Req)
 }
 
 // Execute Function
@@ -38,7 +38,7 @@ func (h Http) ExecFunc(handler http.HandlerFunc) {
 
 // ServeFile replies to the request with the contents of the named file or directory.
 func (h Http) ServeFile(name string) {
-	http.ServeFile(h.c, h.c.Req, name)
+	http.ServeFile(h.c.Res, h.c.Req, name)
 }
 
 // Get issues a GET to the specified URL.  If the response is one of the following

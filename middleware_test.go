@@ -40,7 +40,7 @@ func TestMiddleware(t *testing.T) {
 
 	App.Debug = true
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		result := func() string {
 			return c.Pub.Group.Get("result")
 		}

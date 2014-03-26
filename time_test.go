@@ -1,6 +1,6 @@
 package core
 
-func ExampleCore_Time(c *Core) {
+func ExampleContext_Time(c *Context) {
 	// Get current time
 	curtime := c.Time().Now()
 

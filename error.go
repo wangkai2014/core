@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func printPanic(buf io.Writer, c *Core, r interface{}, stack []byte) {
+func printPanic(buf io.Writer, c *Context, r interface{}, stack []byte) {
 	printF := func(format string, a ...interface{}) {
 		fmt.Fprintf(buf, format, a...)
 	}
@@ -40,7 +40,7 @@ func printPanic(buf io.Writer, c *Core, r interface{}, stack []byte) {
 }
 
 // Check for Error
-func (c *Core) Check(err error) {
+func (c *Context) Check(err error) {
 	Check(err)
 }
 
@@ -52,13 +52,13 @@ func Check(err error) {
 }
 
 type PanicHandler interface {
-	Panic(*Core, interface{}, []byte)
+	Panic(*Context, interface{}, []byte)
 }
 
 // Write error to Stderr.
 type PanicConsole struct{}
 
-func (_ PanicConsole) Panic(c *Core, r interface{}, stack []byte) {
+func (_ PanicConsole) Panic(c *Context, r interface{}, stack []byte) {
 	ErrPrint(r, "\r\n", string(stack))
 }
 
@@ -69,7 +69,7 @@ type PanicFile struct {
 	Path string
 }
 
-func (p PanicFile) Panic(c *Core, r interface{}, stack []byte) {
+func (p PanicFile) Panic(c *Context, r interface{}, stack []byte) {
 	filename := p.Path + fmt.Sprintf("/%d_%d", time.Now().Unix(), time.Now().UnixNano()) + panicFileExt
 	file, err := os.Create(filename)
 	if err != nil {
@@ -82,35 +82,35 @@ func (p PanicFile) Panic(c *Core, r interface{}, stack []byte) {
 var DefaultPanicHandler PanicHandler = PanicConsole{}
 
 type Errors struct {
-	E403 func(c *Core)
-	E404 func(c *Core)
-	E405 func(c *Core)
-	E500 func(c *Core)
+	E403 func(c *Context)
+	E404 func(c *Context)
+	E405 func(c *Context)
+	E500 func(c *Context)
 }
 
 // Execute Error 403 (Forbidden)
-func (c *Core) Error403() {
+func (c *Context) Error403() {
 	c.Pub.Status = 403
 	c.Pub.Errors.E403(c)
 	c.Terminate()
 }
 
 // Execute Error 404 (Not Found)
-func (c *Core) Error404() {
+func (c *Context) Error404() {
 	c.Pub.Status = 404
 	c.Pub.Errors.E404(c)
 	c.Terminate()
 }
 
 // Execute Error 405 (Method Not Allowed)
-func (c *Core) Error405() {
+func (c *Context) Error405() {
 	c.Pub.Status = 405
 	c.Pub.Errors.E405(c)
 	c.Terminate()
 }
 
 // Execute Error 500 (Internal Server Error)
-func (c *Core) Error500() {
+func (c *Context) Error500() {
 	c.Pub.Status = 500
 	c.Pub.Errors.E500(c)
 	c.Terminate()
@@ -143,14 +143,14 @@ func ErrPrintln(a ...interface{}) {
 	fmt.Fprintln(os.Stderr, a...)
 }
 
-func (c *Core) recover() {
+func (c *Context) recover() {
 	if r := recover(); r != nil {
 		stack := debug.Stack()
 		DefaultPanicHandler.Panic(c, r, stack)
 		if c.App.Debug {
 			c.Pub.Status = 500
 			c.Fmt().Println("500 Internal Server Error")
-			printPanic(c, c, r, stack)
+			printPanic(c.Res, c, r, stack)
 			return
 		}
 		c.Error500()

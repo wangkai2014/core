@@ -21,7 +21,7 @@ func (au AutoPopulateFields) check(name string) bool {
 /*
 Populate Struct Field Automatically
 */
-func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
+func (au AutoPopulateFields) Do(c *Context, vc reflect.Value) {
 	s := vc.Elem()
 	typeOfT := s.Type()
 	group := mustGroup(c.Pub.Group)
@@ -117,11 +117,11 @@ func (au AutoPopulateFields) Do(c *Core, vc reflect.Value) {
 /*
 Populate Field by Meta
 */
-func autoPopulateFieldByContext(c *Core, field reflect.Value, name string) {
-	if c.Pub.Context[name] == nil {
+func autoPopulateFieldByContext(c *Context, field reflect.Value, name string) {
+	if c.Pub.Data[name] == nil {
 		return
 	}
-	vcc := reflect.ValueOf(c.Pub.Context[name])
+	vcc := reflect.ValueOf(c.Pub.Data[name])
 	if field.Kind() == vcc.Kind() {
 		field.Set(vcc)
 	}

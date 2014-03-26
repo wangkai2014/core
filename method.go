@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-func execMethodInterface(c *Core, me MethodInterface) {
+func execMethodInterface(c *Context, me MethodInterface) {
 	t := me.getType()
 	if t == nil {
 		t = reflect.Indirect(reflect.ValueOf(me)).Type()
@@ -77,7 +77,7 @@ finish:
 }
 
 type MethodInterface interface {
-	View(*Core)
+	View(*Context)
 	Prepare()
 	Ws()
 	Ajax()
@@ -95,12 +95,12 @@ type MethodInterface interface {
 }
 
 type Method struct {
-	C  *Core `json:"-" xml:"-"`
+	C  *Context `json:"-" xml:"-"`
 	_t reflect.Type
 	_s sync.RWMutex
 }
 
-func (me *Method) View(c *Core) {
+func (me *Method) View(c *Context) {
 	me.C = c
 }
 

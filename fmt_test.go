@@ -1,6 +1,6 @@
 package core
 
-func ExampleCore_Fmt(c *Core) {
+func ExampleContext_Fmt(c *Context) {
 	// Print to Client
 	c.Fmt().Print("Hello", " World")
 

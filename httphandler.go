@@ -10,6 +10,6 @@ type HttpRouteHandler struct {
 }
 
 // Implement RouteHandler
-func (ht HttpRouteHandler) View(c *Core) {
-	ht.ServeHTTP(c, c.Req)
+func (ht HttpRouteHandler) View(c *Context) {
+	ht.ServeHTTP(c.Res, c.Req)
 }

@@ -6,15 +6,15 @@ import (
 
 var app = core.NewApp()
 
-func Index(c *core.Core) {
+func Index(c *core.Context) {
 	c.Fmt().Print("Index")
 }
 
-func Example(c *core.Core) {
+func Example(c *core.Context) {
 	c.Fmt().Print("Example")
 }
 
-func SubExample(c *core.Core) {
+func SubExample(c *core.Context) {
 	c.Fmt().Print("SubExample")
 }
 

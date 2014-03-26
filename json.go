@@ -6,10 +6,10 @@ import (
 )
 
 type Json struct {
-	c *Core
+	c *Context
 }
 
-func (c *Core) Json() Json {
+func (c *Context) Json() Json {
 	return Json{c}
 }
 
@@ -42,7 +42,7 @@ func (j Json) NewEncoder(w io.Writer) *json.Encoder {
 func (j Json) Send(v interface{}) {
 	w := j.c.Pub.Writers["gzip"]
 	if w == nil {
-		w = j.c
+		w = j.c.Res
 	}
 	j.NewEncoder(w).Encode(v)
 }

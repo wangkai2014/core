@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func ExampleCore_Xml(c *Core) {
+func ExampleContext_Xml(c *Context) {
 	// Prepare structure
 	data := struct {
 		Title string `xml:"title,attr"`
@@ -31,7 +31,7 @@ func TestXml(t *testing.T) {
 
 	App.Debug = true
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		xmlTest2 := xmlTest{}
 
 		c.Xml().DecodeReqBody(&xmlTest2)

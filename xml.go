@@ -6,10 +6,10 @@ import (
 )
 
 type Xml struct {
-	c *Core
+	c *Context
 }
 
-func (c *Core) Xml() Xml {
+func (c *Context) Xml() Xml {
 	return Xml{c}
 }
 
@@ -42,7 +42,7 @@ func (x Xml) NewEncoder(w io.Writer) *xml.Encoder {
 func (x Xml) Send(v interface{}) {
 	w := x.c.Pub.Writers["gzip"]
 	if w == nil {
-		w = x.c
+		w = x.c.Res
 	}
 	xml.NewEncoder(w).Encode(v)
 }

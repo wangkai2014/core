@@ -18,9 +18,8 @@ func (in *Index) Prepare() {
 }
 
 func (in *Index) Get() {
-	const htmlstr = `<h1>Hello World</h1>
-	<p>Page: {{.Id}}</p>`
-	in.C.Html().RenderSend(htmlstr, in)
+	const htmlstr = `<h1>Hello World</h1>`
+	in.C.Fmt().Print(htmlstr, in.Id)
 }
 
 func init() {

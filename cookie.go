@@ -9,12 +9,12 @@ import (
 
 // Chainable version of 'net/http.Cookie'
 type Cookie struct {
-	core *Core
+	core *Context
 	c    *http.Cookie
 }
 
 // New Cookie
-func NewCookie(c *Core, name string) Cookie {
+func NewCookie(c *Context, name string) Cookie {
 	return Cookie{
 		core: c,
 		c:    &http.Cookie{Name: name},
@@ -22,7 +22,7 @@ func NewCookie(c *Core, name string) Cookie {
 }
 
 // Cookie
-func (c *Core) Cookie(name string) Cookie {
+func (c *Context) Cookie(name string) Cookie {
 	return NewCookie(c, name)
 }
 
@@ -85,7 +85,7 @@ func (c Cookie) Delete() Cookie {
 
 // Save (Set) Cookie to Response
 func (c Cookie) SaveRes() Cookie {
-	http.SetCookie(c.core, c.pre(c.c))
+	http.SetCookie(c.core.Res, c.pre(c.c))
 	return c
 }
 

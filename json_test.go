@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func ExampleCore_Json(c *Core) {
+func ExampleContext_Json(c *Context) {
 	// Prepare structure
 	data := struct {
 		Title string `json:"title"`
@@ -31,7 +31,7 @@ func TestJson(t *testing.T) {
 
 	App.Debug = true
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		jsonTest2 := jsonTest{}
 
 		c.Json().DecodeReqBody(&jsonTest2)

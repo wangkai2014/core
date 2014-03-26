@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-func execProtocolInterface(c *Core, pr ProtocolInterface) {
+func execProtocolInterface(c *Context, pr ProtocolInterface) {
 	t := pr.getType()
 	if t == nil {
 		t = reflect.Indirect(reflect.ValueOf(pr)).Type()
@@ -32,7 +32,7 @@ func execProtocolInterface(c *Core, pr ProtocolInterface) {
 }
 
 type ProtocolInterface interface {
-	View(*Core)
+	View(*Context)
 	Http()
 	Https()
 	getType() reflect.Type
@@ -42,12 +42,12 @@ type ProtocolInterface interface {
 }
 
 type Protocol struct {
-	C  *Core `json:"-" xml:"-"`
+	C  *Context `json:"-" xml:"-"`
 	_t reflect.Type
 	_s sync.RWMutex
 }
 
-func (pr *Protocol) View(c *Core) {
+func (pr *Protocol) View(c *Context) {
 	pr.C = c
 }
 

@@ -12,7 +12,7 @@ func TestSession(t *testing.T) {
 
 	App.Debug = true
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		c.Session().Set("hello world")
 	})
 
@@ -25,7 +25,7 @@ func TestSession(t *testing.T) {
 
 	client.Get(ts.URL)
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		if c.Session().Get().(string) != "hello world" {
 			t.Fail()
 		}
@@ -33,13 +33,13 @@ func TestSession(t *testing.T) {
 
 	client.Get(ts.URL)
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		c.Session().Destroy()
 	})
 
 	client.Get(ts.URL)
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		if c.Session().Get() != nil {
 			t.Fail()
 		}
@@ -53,7 +53,7 @@ func TestSessionAdv(t *testing.T) {
 
 	App.Debug = true
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		c.Session().Adv().Set("world", "hello!")
 		c.Session().Adv().Save()
 	})
@@ -67,7 +67,7 @@ func TestSessionAdv(t *testing.T) {
 
 	client.Get(ts.URL)
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		if c.Session().Adv().Get("world").(string) != "hello!" {
 			t.Fail()
 		}
@@ -75,14 +75,14 @@ func TestSessionAdv(t *testing.T) {
 
 	client.Get(ts.URL)
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		c.Session().Adv().Set("world", nil)
 		c.Session().Adv().Save()
 	})
 
 	client.Get(ts.URL)
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		if c.Session().Adv().Get("world") != nil {
 			t.Fail()
 		}

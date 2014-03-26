@@ -55,7 +55,7 @@ func TestMethod(t *testing.T) {
 
 	App.Debug = true
 
-	App.TestView = RouteHandlerFunc(func(w *Core) {
+	App.TestView = RouteHandlerFunc(func(w *Context) {
 
 		prepare := func() string {
 			return w.Pub.Group.Get("prepare")

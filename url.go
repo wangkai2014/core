@@ -59,10 +59,10 @@ func (u *URLReverse) Print(name string, a ...interface{}) string {
 }
 
 type Url struct {
-	c *Core
+	c *Context
 }
 
-func (c *Core) Url() Url {
+func (c *Context) Url() Url {
 	return Url{c}
 }
 
@@ -127,30 +127,30 @@ func (u Url) code303() int {
 
 // Convert current path to Https
 func (u Url) ToHttps() {
-	defer u.c.WriteHeader(u.code301())
-	u.c.Header().Set("Location", u.AbsoluteHttps(u.c.Req.URL.Path))
+	defer u.c.Res.WriteHeader(u.code301())
+	u.c.Res.Header().Set("Location", u.AbsoluteHttps(u.c.Req.URL.Path))
 }
 
 // Convert current path to Http
 func (u Url) ToHttp() {
-	defer u.c.WriteHeader(u.code301())
-	u.c.Header().Set("Location", u.AbsoluteHttp(u.c.Req.URL.Path))
+	defer u.c.Res.WriteHeader(u.code301())
+	u.c.Res.Header().Set("Location", u.AbsoluteHttp(u.c.Req.URL.Path))
 }
 
 // Redirect client to relative_url
 func (u Url) Redirect(relative_url string) {
-	defer u.c.WriteHeader(u.code303())
-	u.c.Header().Set("Location", u.Absolute(relative_url))
+	defer u.c.Res.WriteHeader(u.code303())
+	u.c.Res.Header().Set("Location", u.Absolute(relative_url))
 }
 
 // Redirect client to relative_url (Http Only)
 func (u Url) RedirectHttp(relative_url string) {
-	defer u.c.WriteHeader(u.code303())
-	u.c.Header().Set("Location", u.AbsoluteHttp(relative_url))
+	defer u.c.Res.WriteHeader(u.code303())
+	u.c.Res.Header().Set("Location", u.AbsoluteHttp(relative_url))
 }
 
 // Redirect client to relative_url (Https Only)
 func (u Url) RedirectHttps(relative_url string) {
-	defer u.c.WriteHeader(u.code303())
-	u.c.Header().Set("Location", u.AbsoluteHttps(relative_url))
+	defer u.c.Res.WriteHeader(u.code303())
+	u.c.Res.Header().Set("Location", u.AbsoluteHttps(relative_url))
 }

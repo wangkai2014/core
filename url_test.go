@@ -1,6 +1,6 @@
 package core
 
-func ExampleCore_Url(c *Core) {
+func ExampleContext_Url(c *Context) {
 	// Get Absolute Url
 	url := c.Url().Absolute("/")
 

@@ -10,7 +10,7 @@ type dirLock struct {
 	RouteHandler
 }
 
-func (dir dirLock) View(c *Core) {
+func (dir dirLock) View(c *Context) {
 	if c.pri.path != "" && c.pri.path != "/" {
 		c.Error404()
 		return
@@ -24,7 +24,7 @@ type NoDirLock struct {
 }
 
 // Implement RouteHandler
-func (nod NoDirLock) View(c *Core) {
+func (nod NoDirLock) View(c *Context) {
 	c.RouteDealer(nod.RouteHandler)
 }
 
@@ -150,7 +150,7 @@ func (dir *DirRouter) RegisterFuncMap(funcmap FuncMap) *DirRouter {
 	return dir
 }
 
-func (dir *DirRouter) error404(c *Core) {
+func (dir *DirRouter) error404(c *Context) {
 	if !c.App.Debug {
 		c.Error404()
 		return
@@ -170,7 +170,7 @@ func (dir *DirRouter) error404(c *Core) {
 }
 
 // Implement RouteHandler
-func (dir *DirRouter) View(c *Core) {
+func (dir *DirRouter) View(c *Context) {
 	// Check if Root Path
 	if c.pri.path == "" || c.pri.path == "/" {
 		if dir.root == nil {

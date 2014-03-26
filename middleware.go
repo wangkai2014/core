@@ -8,7 +8,7 @@ import (
 
 // Middleware Interface
 type MiddlewareInterface interface {
-	Init(*Core)
+	Init(*Context)
 	Pre()
 	Post()
 	Priority() int
@@ -18,13 +18,13 @@ type MiddlewareInterface interface {
 
 // Implement MiddlewareInterface
 type Middleware struct {
-	C  *Core
+	C  *Context
 	_t reflect.Type
 	_s sync.RWMutex
 }
 
 // Init
-func (mid *Middleware) Init(c *Core) {
+func (mid *Middleware) Init(c *Context) {
 	mid.C = c
 }
 
@@ -72,7 +72,7 @@ func (mid _middlewares) Swap(i, j int) {
 type Middlewares struct {
 	sync.Mutex
 	items _middlewares
-	c     *Core
+	c     *Context
 }
 
 // Construct New Middleware
@@ -104,7 +104,7 @@ func (mid *Middlewares) Clear() *Middlewares {
 }
 
 // Init Middlewares, return initialised structure.
-func (mid *Middlewares) Init(c *Core) *Middlewares {
+func (mid *Middlewares) Init(c *Context) *Middlewares {
 	if mid.c != nil || !c.App.MiddlewareEnabled {
 		return mid
 	}

@@ -11,7 +11,7 @@ func TestRouter(t *testing.T) {
 
 	App.Debug = true
 
-	possible_pass := RouteHandlerFunc(func(c *Core) {
+	possible_pass := RouteHandlerFunc(func(c *Context) {
 		if c.Pub.Group.Get("title") != "test" {
 			t.Fail()
 		}
@@ -21,15 +21,15 @@ func TestRouter(t *testing.T) {
 		}
 	})
 
-	pass := RouteHandlerFunc(func(c *Core) {
+	pass := RouteHandlerFunc(func(c *Context) {
 		// Do nothing, it's an automactic pass!
 	})
 
-	fail := RouteHandlerFunc(func(c *Core) {
+	fail := RouteHandlerFunc(func(c *Context) {
 		t.Fail()
 	})
 
-	App.TestView = RouteHandlerFunc(func(c *Core) {
+	App.TestView = RouteHandlerFunc(func(c *Context) {
 		c.Pub.Errors.E403 = fail
 		c.Pub.Errors.E404 = fail
 		c.Pub.Errors.E500 = fail
