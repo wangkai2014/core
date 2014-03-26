@@ -49,8 +49,6 @@ func (r Res) Write(data []byte) (int, error) {
 // will trigger an implicit WriteHeader(http.StatusOK).
 // Thus explicit calls to WriteHeader are mainly used to
 // send error codes.
-//
-// Note: Use Status property to set error code! As this disable compression!
 func (r Res) WriteHeader(num int) {
 	r.c.pri.cut = true
 
