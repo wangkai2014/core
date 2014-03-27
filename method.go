@@ -160,3 +160,6 @@ func (me *Method) setType(t reflect.Type) {
 func (me *Method) asn_Core_0001() {
 	// Do nothing
 }
+
+// Alais of Method
+type Verb Method
