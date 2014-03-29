@@ -252,7 +252,9 @@ func (me *MethodHtml5) Finish() {
 }
 
 // Alais of MethodHtml5
-type VerbHtml5 MethodHtml5
+type VerbHtml5 struct {
+	MethodHtml5
+}
 
 func HtmlAttrLang(code string) func(HtmlPrinter, *Context) {
 	code = fmt.Sprintf(`lang="%s" `, html.EscapeString(code))

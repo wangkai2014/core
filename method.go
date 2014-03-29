@@ -162,4 +162,6 @@ func (me *Method) asn_Core_0001() {
 }
 
 // Alais of Method
-type Verb Method
+type Verb struct {
+	Method
+}
