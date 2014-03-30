@@ -296,7 +296,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	c.initSession()
 
 	if app.Debug && app.TestView != nil {
-		app.TestView.View(c)
+		c.RouteDealer(app.TestView)
 		return
 	}
 
