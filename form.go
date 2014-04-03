@@ -124,7 +124,7 @@ func (c *Context) Form() *Form {
 	} else if c.Req.PostForm != nil {
 		form.Value = c.Req.PostForm
 		form.File = nil
-	} else {
+	} else if c.Req.Form != nil {
 		form.Value = c.Req.Form
 		form.File = nil
 	}
