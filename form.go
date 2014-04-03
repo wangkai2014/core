@@ -121,6 +121,9 @@ func (c *Context) Form() *Form {
 	if c.Req.MultipartForm != nil {
 		form.Value = url.Values(c.Req.MultipartForm.Value)
 		form.File = c.Req.MultipartForm.File
+	} else if c.Req.PostForm != nil {
+		form.Value = c.Req.PostForm
+		form.File = nil
 	} else {
 		form.Value = c.Req.Form
 		form.File = nil
