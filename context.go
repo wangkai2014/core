@@ -87,6 +87,7 @@ func (r Res) Flush() {
 
 type private struct {
 	path       string
+	pathAlt    string
 	curpath    string
 	reswrite   io.Writer
 	cut        bool

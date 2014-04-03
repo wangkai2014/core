@@ -119,5 +119,5 @@ func (h Http) ReadResponse(r *bufio.Reader, req *http.Request) (*http.Response, 
 
 // Path
 func (h Http) Path() string {
-	return h.c.pri.curpath + h.c.pri.path
+	return h.c.pri.pathAlt
 }
