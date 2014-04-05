@@ -125,7 +125,7 @@ func NewApp() *App {
 	app.SessionCookieName = NewAtomicString("__session")
 	app.SessionExpire = 20 * time.Minute
 	app.SessionExpireCheckInterval = 10 * time.Minute
-	app.SessionHandler = SessionMemory{}
+	app.SessionHandler = SessionStateless{}
 
 	app.TimeFormat = NewAtomicString("Monday, _2 January 2006, 15:04")
 

@@ -1,6 +1,8 @@
 package core
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/gob"
 	"os"
 	"time"
@@ -27,6 +29,14 @@ func (ses *session) hit(c *Context) {
 	ses.Expire = time.Now().Add(c.App.SessionExpire)
 }
 
+type sessionStateless struct {
+	Data interface{}
+}
+
+func init() {
+	gob.Register(&sessionStateless{})
+}
+
 // Session interface
 //
 // Note: Useful for checking the existant of the session!
@@ -40,6 +50,59 @@ type SessionHandler interface {
 	Set(*Context, interface{})
 	Init(*Context)
 	Destroy(*Context)
+}
+
+// Store Session to Cookie
+type SessionStateless struct{}
+
+func (_ SessionStateless) Set(c *Context, data interface{}) {
+	sessionCookieName := c.App.SessionCookieName.String()
+
+	s := sessionStateless{
+		Data: data,
+	}
+
+	buf := &bytes.Buffer{}
+	defer buf.Reset()
+	enc := gob.NewEncoder(buf)
+	err := enc.Encode(s)
+	Check(err)
+
+	c.Cookie(sessionCookieName).Value(base64.URLEncoding.EncodeToString(buf.Bytes())).Expires(time.Now().Add(c.App.SessionExpire)).SaveRes()
+}
+
+func (_ SessionStateless) Init(c *Context) {
+	sessionCookieName := c.App.SessionCookieName.String()
+
+	cookie, err := c.Cookie(sessionCookieName).Get()
+	if err != nil {
+		return
+	}
+
+	s := sessionStateless{}
+
+	buf := &bytes.Buffer{}
+	defer buf.Reset()
+	b, err := base64.URLEncoding.DecodeString(cookie.Value)
+	if err != nil {
+		c.Cookie(sessionCookieName).Delete()
+		return
+	}
+	buf.Write(b)
+	dec := gob.NewDecoder(buf)
+	err = dec.Decode(&s)
+	if err != nil {
+		c.Cookie(sessionCookieName).Delete()
+		return
+	}
+
+	c.Pub.Session = s.Data
+	c.Cookie(sessionCookieName).Value(cookie.Value).Expires(time.Now().Add(c.App.SessionExpire)).SaveRes()
+}
+
+func (_ SessionStateless) Destroy(c *Context) {
+	sessionCookieName := c.App.SessionCookieName.String()
+	c.Cookie(sessionCookieName).Delete()
 }
 
 // Store Session to Memory
