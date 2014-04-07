@@ -37,6 +37,11 @@ func (c Cookie) NoEncryption() Cookie {
 	return c
 }
 
+// Alias of NoEncryption
+func (c Cookie) Unsigned() Cookie {
+	return c.NoEncryption()
+}
+
 // Do not validate, call before Get
 func (c Cookie) NoValidation() Cookie {
 	c.validate = false
