@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/gorilla/securecookie"
+	"github.com/gorail/core/securecookie"
 	"net"
 	"net/http"
 	"strings"
