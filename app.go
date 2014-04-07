@@ -74,6 +74,9 @@ type App struct {
 
 	data     map[string]interface{}
 	dataSync sync.RWMutex
+
+	CookieHashKey  []byte
+	CookieBlockKey []byte
 }
 
 // Construct New Application

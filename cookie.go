@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/gorilla/securecookie"
 	"net"
 	"net/http"
 	"strings"
@@ -9,15 +10,19 @@ import (
 
 // Chainable version of 'net/http.Cookie'
 type Cookie struct {
-	core *Context
-	c    *http.Cookie
+	core     *Context
+	c        *http.Cookie
+	secure   bool
+	validate bool
 }
 
 // New Cookie
 func NewCookie(c *Context, name string) Cookie {
 	return Cookie{
-		core: c,
-		c:    &http.Cookie{Name: name},
+		core:     c,
+		c:        &http.Cookie{Name: name},
+		secure:   true,
+		validate: true,
 	}
 }
 
@@ -26,8 +31,37 @@ func (c *Context) Cookie(name string) Cookie {
 	return NewCookie(c, name)
 }
 
+// Disallow encryption, call before calling Value
+func (c Cookie) NoEncryption() Cookie {
+	c.secure = false
+	return c
+}
+
+// Do not validate, call before Get
+func (c Cookie) NoValidation() Cookie {
+	c.validate = false
+	return c
+}
+
 // Set Value
 func (c Cookie) Value(value string) Cookie {
+	if !c.secure || c.core.App.CookieHashKey == nil {
+		c.c.Value = value
+		return c
+	}
+
+	var scookie *securecookie.SecureCookie
+	var ok bool
+
+	if scookie, ok = c.core.App.Data("_secure_cookie").(*securecookie.SecureCookie); !ok {
+		scookie = securecookie.New(c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
+		c.core.App.DataSet("_secure_cookie", scookie)
+	}
+
+	var err error
+	value, err = scookie.Encode(c.c.Name, value)
+	Check(err)
+
 	c.c.Value = value
 	return c
 }
@@ -75,7 +109,36 @@ func (c Cookie) Get() (*http.Cookie, error) {
 	if c.c.Value != "" {
 		return c.c, nil
 	}
-	return c.core.Req.Cookie(c.c.Name)
+	var err error
+	c.c, err = c.core.Req.Cookie(c.c.Name)
+	if err != nil {
+		return c.c, err
+	}
+
+	if !c.secure || c.core.App.CookieHashKey == nil {
+		return c.c, nil
+	}
+
+	var scookie *securecookie.SecureCookie
+	var ok bool
+
+	if scookie, ok = c.core.App.Data("_secure_cookie").(*securecookie.SecureCookie); !ok {
+		scookie = securecookie.New(c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
+		c.core.App.DataSet("_secure_cookie", scookie)
+	}
+
+	value := ""
+	if err = scookie.Decode(c.c.Name, c.c.Value, &value); err != nil {
+		if c.validate {
+			return c.c, err
+		} else {
+			return c.c, nil
+		}
+	}
+
+	c.c.Value = value
+
+	return c.c, nil
 }
 
 // Delete Cookie

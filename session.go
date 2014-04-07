@@ -68,7 +68,20 @@ func (_ SessionStateless) Set(c *Context, data interface{}) {
 	err := enc.Encode(s)
 	Check(err)
 
-	c.Cookie(sessionCookieName).Value(base64.URLEncoding.EncodeToString(buf.Bytes())).Expires(time.Now().Add(c.App.SessionExpire)).SaveRes()
+	value := ""
+	blockKey := false
+	if c.App.CookieBlockKey != nil {
+		key_len := len(c.App.CookieBlockKey)
+		blockKey = key_len == 16 || key_len == 24 || key_len == 32
+	}
+
+	if blockKey {
+		value = buf.String()
+	} else {
+		value = base64.URLEncoding.EncodeToString(buf.Bytes())
+	}
+
+	c.Cookie(sessionCookieName).Value(value).Expires(time.Now().Add(c.App.SessionExpire)).SaveRes()
 }
 
 func (_ SessionStateless) Init(c *Context) {
@@ -79,15 +92,28 @@ func (_ SessionStateless) Init(c *Context) {
 		return
 	}
 
+	blockKey := false
+	if c.App.CookieBlockKey != nil {
+		key_len := len(c.App.CookieBlockKey)
+		blockKey = key_len == 16 || key_len == 24 || key_len == 32
+	}
+
+	var b []byte
+
 	s := sessionStateless{}
 
 	buf := &bytes.Buffer{}
 	defer buf.Reset()
-	b, err := base64.URLEncoding.DecodeString(cookie.Value)
-	if err != nil {
-		c.Cookie(sessionCookieName).Delete()
-		return
+	if blockKey {
+		b = []byte(cookie.Value)
+	} else {
+		b, err = base64.URLEncoding.DecodeString(cookie.Value)
+		if err != nil {
+			c.Cookie(sessionCookieName).Delete()
+			return
+		}
 	}
+
 	buf.Write(b)
 	dec := gob.NewDecoder(buf)
 	err = dec.Decode(&s)
