@@ -59,6 +59,7 @@ func (c Cookie) Value(value string) Cookie {
 	defer buf.Reset()
 	w, err := c.core.Crypto().HmacWriterCloser(buf, c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
 	c.core.Check(err)
+	c.core.Fmt().Fprint(w, c.c.Name)
 	c.core.Fmt().Fprint(w, value)
 	w.Close()
 
@@ -133,7 +134,17 @@ func (c Cookie) Get() (*http.Cookie, error) {
 	defer buf.Reset()
 	buf.ReadFrom(reader)
 
-	c.c.Value = buf.String()
+	str := buf.String()
+	nameLen := len(c.c.Name)
+	if len(str) < nameLen {
+		return nil, ErrorStr("Cookie name check failed")
+	}
+
+	if c.c.Name != str[:nameLen] {
+		return nil, ErrorStr("Cookie name check failed")
+	}
+
+	c.c.Value = str[nameLen:]
 
 	return c.c, nil
 }
