@@ -55,6 +55,11 @@ func (c Cookie) Value(value string) Cookie {
 		return c
 	}
 
+	if value == "" {
+		c.c.Value = ""
+		return c
+	}
+
 	buf := &bytes.Buffer{}
 	defer buf.Reset()
 	w, err := c.core.Crypto().HmacWriterCloser(buf, c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
@@ -120,10 +125,15 @@ func (c Cookie) Get() (*http.Cookie, error) {
 		return c.c, nil
 	}
 
+	if c.c.Value == "" {
+		return c.c, nil
+	}
+
 	reader, err := c.core.Crypto().HmacReader(strings.NewReader(c.c.Value), c.core.App.CookieHashKey,
 		c.core.App.CookieBlockKey)
 	if err != nil {
 		if c.validate {
+			c.Delete()
 			return nil, err
 		} else {
 			return c.c, nil
@@ -137,10 +147,12 @@ func (c Cookie) Get() (*http.Cookie, error) {
 	str := buf.String()
 	nameLen := len(c.c.Name)
 	if len(str) < nameLen {
+		c.Delete()
 		return nil, ErrorStr("Cookie name check failed")
 	}
 
 	if c.c.Name != str[:nameLen] {
+		c.Delete()
 		return nil, ErrorStr("Cookie name check failed")
 	}
 
@@ -151,7 +163,7 @@ func (c Cookie) Get() (*http.Cookie, error) {
 
 // Delete Cookie
 func (c Cookie) Delete() Cookie {
-	return c.Value("Delete-Me").MaxAge(-1).SaveRes()
+	return c.Unsigned().Value("Delete-Me").MaxAge(-1).SaveRes()
 }
 
 // Save (Set) Cookie to Response

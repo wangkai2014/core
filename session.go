@@ -75,7 +75,7 @@ func (_ SessionStateless) Set(c *Context, data interface{}) {
 		value = base64.URLEncoding.EncodeToString(buf.Bytes())
 	}
 
-	c.Cookie(sessionCookieName).Value(value).Expires(time.Now().Add(c.App.SessionExpire)).SaveRes()
+	c.Cookie(sessionCookieName).Value(value).SaveRes()
 }
 
 func (_ SessionStateless) Init(c *Context) {
@@ -111,7 +111,6 @@ func (_ SessionStateless) Init(c *Context) {
 	}
 
 	c.Pub.Session = s.Data
-	c.Cookie(sessionCookieName).Value(cookie.Value).Expires(time.Now().Add(c.App.SessionExpire)).SaveRes()
 }
 
 func (_ SessionStateless) Destroy(c *Context) {
