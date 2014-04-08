@@ -69,13 +69,7 @@ func (_ SessionStateless) Set(c *Context, data interface{}) {
 	Check(err)
 
 	value := ""
-	blockKey := false
-	if c.App.CookieBlockKey != nil {
-		key_len := len(c.App.CookieBlockKey)
-		blockKey = key_len == 16 || key_len == 24 || key_len == 32
-	}
-
-	if blockKey {
+	if c.App.CookieHashKey != nil {
 		value = buf.String()
 	} else {
 		value = base64.URLEncoding.EncodeToString(buf.Bytes())
@@ -92,19 +86,13 @@ func (_ SessionStateless) Init(c *Context) {
 		return
 	}
 
-	blockKey := false
-	if c.App.CookieBlockKey != nil {
-		key_len := len(c.App.CookieBlockKey)
-		blockKey = key_len == 16 || key_len == 24 || key_len == 32
-	}
-
 	var b []byte
 
 	s := sessionStateless{}
 
 	buf := &bytes.Buffer{}
 	defer buf.Reset()
-	if blockKey {
+	if c.App.CookieHashKey != nil {
 		b = []byte(cookie.Value)
 	} else {
 		b, err = base64.URLEncoding.DecodeString(cookie.Value)

@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/gorail/core/securecookie"
+	"bytes"
 	"net"
 	"net/http"
 	"strings"
@@ -55,19 +55,14 @@ func (c Cookie) Value(value string) Cookie {
 		return c
 	}
 
-	var scookie *securecookie.SecureCookie
-	var ok bool
+	buf := &bytes.Buffer{}
+	defer buf.Reset()
+	w, err := c.core.Crypto().HmacWriterCloser(buf, c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
+	c.core.Check(err)
+	c.core.Fmt().Fprint(w, value)
+	w.Close()
 
-	if scookie, ok = c.core.App.Data("_secure_cookie").(*securecookie.SecureCookie); !ok {
-		scookie = securecookie.New(c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
-		c.core.App.DataSet("_secure_cookie", scookie)
-	}
-
-	var err error
-	value, err = scookie.Encode(c.c.Name, value)
-	Check(err)
-
-	c.c.Value = value
+	c.c.Value = buf.String()
 	return c
 }
 
@@ -117,31 +112,28 @@ func (c Cookie) Get() (*http.Cookie, error) {
 	var err error
 	c.c, err = c.core.Req.Cookie(c.c.Name)
 	if err != nil {
-		return c.c, err
+		return nil, err
 	}
 
 	if !c.secure || c.core.App.CookieHashKey == nil {
 		return c.c, nil
 	}
 
-	var scookie *securecookie.SecureCookie
-	var ok bool
-
-	if scookie, ok = c.core.App.Data("_secure_cookie").(*securecookie.SecureCookie); !ok {
-		scookie = securecookie.New(c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
-		c.core.App.DataSet("_secure_cookie", scookie)
-	}
-
-	value := ""
-	if err = scookie.Decode(c.c.Name, c.c.Value, &value); err != nil {
+	reader, err := c.core.Crypto().HmacReader(strings.NewReader(c.c.Value), c.core.App.CookieHashKey,
+		c.core.App.CookieBlockKey)
+	if err != nil {
 		if c.validate {
-			return c.c, err
+			return nil, err
 		} else {
 			return c.c, nil
 		}
 	}
 
-	c.c.Value = value
+	buf := &bytes.Buffer{}
+	defer buf.Reset()
+	buf.ReadFrom(reader)
+
+	c.c.Value = buf.String()
 
 	return c.c, nil
 }

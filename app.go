@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"hash"
 	"io"
 	"net"
 	"net/http"
@@ -77,6 +78,8 @@ type App struct {
 
 	CookieHashKey  []byte
 	CookieBlockKey []byte
+
+	HashFunc func() hash.Hash
 }
 
 // Construct New Application
