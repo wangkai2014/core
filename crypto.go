@@ -49,6 +49,16 @@ func (h *hmacStreamWriterCloser) Close() error {
 	return h.ww.Close()
 }
 
+type dummyWriterCloser int
+
+func (_ dummyWriterCloser) Write(p []byte) (int, error) {
+	return 0, nil
+}
+
+func (_ dummyWriterCloser) Close() error {
+	return nil
+}
+
 type Crypto struct {
 	c *Context
 }
@@ -83,9 +93,7 @@ func (c Crypto) AesOfbReader(r io.Reader, blockKey []byte) (io.Reader, error) {
 	return &cipher.StreamReader{S: stream, R: r}, nil
 }
 
-func (c Crypto) HmacWriterCloser(w io.Writer, hashKey, blockKey []byte) (io.WriteCloser, error) {
-	enc := base64.NewEncoder(base64.URLEncoding, w)
-	w = enc
+func (c Crypto) HmacWriterCloser(w io.Writer, hashKey, blockKey []byte) io.WriteCloser {
 	ww, err := c.AesOfbWriter(w, blockKey)
 	if err == nil {
 		w = ww
@@ -98,11 +106,10 @@ func (c Crypto) HmacWriterCloser(w io.Writer, hashKey, blockKey []byte) (io.Writ
 		}
 	}
 
-	return &hmacStreamWriterCloser{w, enc, &bytes.Buffer{}, hmac.New(fn, hashKey)}, nil
+	return &hmacStreamWriterCloser{w, dummyWriterCloser(0), &bytes.Buffer{}, hmac.New(fn, hashKey)}
 }
 
 func (c Crypto) HmacReader(r io.Reader, hashKey, blockKey []byte) (io.Reader, error) {
-	r = base64.NewDecoder(base64.URLEncoding, r)
 	rr, err := c.AesOfbReader(r, blockKey)
 	if err == nil {
 		r = rr
@@ -130,4 +137,16 @@ func (c Crypto) HmacReader(r io.Reader, hashKey, blockKey []byte) (io.Reader, er
 	}
 
 	return bytes.NewReader(data.B), nil
+}
+
+func (c Crypto) Base64HmacWriterCloser(w io.Writer, hashKey, blockKey []byte) io.WriteCloser {
+	enc := base64.NewEncoder(base64.URLEncoding, w)
+	w = enc
+	writer := c.HmacWriterCloser(w, hashKey, blockKey).(*hmacStreamWriterCloser)
+	writer.ww = enc
+	return writer
+}
+
+func (c Crypto) Base64HmacReader(r io.Reader, hashKey, blockKey []byte) (io.Reader, error) {
+	return c.HmacReader(base64.NewDecoder(base64.URLEncoding, r), hashKey, blockKey)
 }

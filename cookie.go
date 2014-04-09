@@ -62,8 +62,7 @@ func (c Cookie) Value(value string) Cookie {
 
 	buf := &bytes.Buffer{}
 	defer buf.Reset()
-	w, err := c.core.Crypto().HmacWriterCloser(buf, c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
-	c.core.Check(err)
+	w := c.core.Crypto().Base64HmacWriterCloser(buf, c.core.App.CookieHashKey, c.core.App.CookieBlockKey)
 	c.core.Fmt().Fprint(w, c.c.Name)
 	c.core.Fmt().Fprint(w, value)
 	w.Close()
@@ -129,7 +128,7 @@ func (c Cookie) Get() (*http.Cookie, error) {
 		return c.c, nil
 	}
 
-	reader, err := c.core.Crypto().HmacReader(strings.NewReader(c.c.Value), c.core.App.CookieHashKey,
+	reader, err := c.core.Crypto().Base64HmacReader(strings.NewReader(c.c.Value), c.core.App.CookieHashKey,
 		c.core.App.CookieBlockKey)
 	if err != nil {
 		if c.validate {
