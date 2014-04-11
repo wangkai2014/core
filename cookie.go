@@ -20,7 +20,7 @@ type Cookie struct {
 func NewCookie(c *Context, name string) Cookie {
 	return Cookie{
 		core:     c,
-		c:        &http.Cookie{Name: name},
+		c:        &http.Cookie{Name: name, Secure: c.App.CookieForceSecure},
 		secure:   true,
 		validate: true,
 	}

@@ -76,8 +76,9 @@ type App struct {
 	data     map[string]interface{}
 	dataSync sync.RWMutex
 
-	CookieHashKey  []byte
-	CookieBlockKey []byte
+	CookieHashKey     []byte
+	CookieBlockKey    []byte
+	CookieForceSecure bool
 
 	HashFunc func() hash.Hash
 }
