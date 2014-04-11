@@ -133,7 +133,7 @@ func (c Crypto) HmacReader(r io.Reader, hashKey, blockKey []byte) (io.Reader, er
 	hash.Write(data.B)
 
 	if !hmac.Equal(data.M, hash.Sum(nil)) {
-		return nil, ErrorStr("Data has been tempered with!")
+		return nil, ErrorStr(c.c.Lang().Key("errHmacDataIntegrity"))
 	}
 
 	return bytes.NewReader(data.B), nil

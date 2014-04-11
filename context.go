@@ -119,6 +119,8 @@ type Public struct {
 	// Reader and Writer Dump
 	Writers map[string]io.Writer
 	Readers map[string]io.Reader
+	// ISO-639 and ISO-3166, e.g en-GB (English Great Britain)
+	LangCode string
 }
 
 // The Framework Structure and Context of User and the Application

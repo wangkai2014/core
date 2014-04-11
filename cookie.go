@@ -147,12 +147,12 @@ func (c Cookie) Get() (*http.Cookie, error) {
 	nameLen := len(c.c.Name)
 	if len(str) < nameLen {
 		c.Delete()
-		return nil, ErrorStr("Cookie name check failed")
+		return nil, ErrorStr(c.core.Lang().Key("errCookieNameCheck"))
 	}
 
 	if c.c.Name != str[:nameLen] {
 		c.Delete()
-		return nil, ErrorStr("Cookie name check failed")
+		return nil, ErrorStr(c.core.Lang().Key("errCookieNameCheck"))
 	}
 
 	c.c.Value = str[nameLen:]

@@ -15,6 +15,9 @@ import (
 type App struct {
 	Name string
 
+	// ISO-639 and ISO-3166, e.g en-GB (English Great Britain)
+	LangCode *AtomicString
+
 	Debug              bool
 	debugTlsPortNumber uint16
 	debugPortNumber    uint16
@@ -89,6 +92,8 @@ func NewApp() *App {
 
 	app.Name = "default"
 
+	app.LangCode = NewAtomicString("en-GB")
+
 	appCount++
 	if appCount > 1 {
 		app.Name = fmt.Sprint(app.Name, "-", appCount)
@@ -156,16 +161,16 @@ func NewApp() *App {
 	app.URLRev = &URLReverse{}
 
 	app.Error403 = func(c *Context) {
-		c.Fmt().Print("<h1>403 Forbidden</h1>")
+		c.Fmt().Print("<h1>", c.Lang().Key("err403"), "</h1>")
 	}
 	app.Error404 = func(c *Context) {
-		c.Fmt().Print("<h1>404 Not Found</h1>")
+		c.Fmt().Print("<h1>", c.Lang().Key("err404"), "</h1>")
 	}
 	app.Error405 = func(c *Context) {
-		c.Fmt().Print("<h1>405 Method Not Allowed</h1>")
+		c.Fmt().Print("<h1>", c.Lang().Key("err405"), "</h1>")
 	}
 	app.Error500 = func(c *Context) {
-		c.Fmt().Print("<h1>500 Internal Server Error</h1>")
+		c.Fmt().Print("<h1>", c.Lang().Key("err500"), "</h1>")
 	}
 
 	app.regExpCache = newRegExpCacheSystem()
@@ -283,6 +288,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 				E405: app.Error405,
 				E500: app.Error500,
 			},
+			LangCode: app.LangCode.String(),
 		},
 		pri: private{
 			path:       req.URL.Path,
@@ -332,7 +338,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	defer func() {
 		mainMiddleware.Post()
 		if !c.Terminated() && c.Req.Method != "HEAD" {
-			panic(ErrorStr("No Output was sent to Client!"))
+			panic(ErrorStr(c.Lang().Key("errNoOutput")))
 		}
 	}()
 
