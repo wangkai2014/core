@@ -5,24 +5,24 @@ import (
 )
 
 type LangPackage struct {
-	sync.RWMutex
-	m map[string]string
+	_m sync.RWMutex
+	m  map[string]string
 }
 
 func (l *LangPackage) Key(name string) string {
-	l.RLock()
-	defer l.RUnlock()
+	l._m.RLock()
+	defer l._m.RUnlock()
 	return l.m[name]
 }
 
 type Lang struct {
-	sync.RWMutex
-	m map[string]*LangPackage
+	_m sync.RWMutex
+	m  map[string]*LangPackage
 }
 
 func (l *Lang) Package(name string) *LangPackage {
-	l.RLock()
-	defer l.RUnlock()
+	l._m.RLock()
+	defer l._m.RUnlock()
 	return l.m[name]
 }
 
@@ -31,42 +31,42 @@ func (l *Lang) Key(name string) string {
 }
 
 type _langs struct {
-	sync.RWMutex
-	m map[string]*Lang
+	_m sync.RWMutex
+	m  map[string]*Lang
 }
 
 var langs = &_langs{m: map[string]*Lang{}}
 
 func (c *Context) Lang() *Lang {
-	langs.RLock()
-	defer langs.RUnlock()
+	langs._m.RLock()
+	defer langs._m.RUnlock()
 	return langs.m[c.Pub.LangCode]
 }
 
 func LangKeyValueRegister(langCode, _package string, keyValue map[string]string) {
-	langs.Lock()
-	defer langs.Unlock()
+	langs._m.Lock()
+	defer langs._m.Unlock()
 	if langs.m[langCode] == nil {
 		langs.m[langCode] = &Lang{m: map[string]*LangPackage{_package: &LangPackage{m: keyValue}}}
 		return
 	}
-	langs.m[langCode].Lock()
-	defer langs.m[langCode].Unlock()
+	langs.m[langCode]._m.Lock()
+	defer langs.m[langCode]._m.Unlock()
 	if langs.m[langCode].m[_package] == nil {
 		langs.m[langCode].m[_package] = &LangPackage{m: keyValue}
 		return
 	}
 	pack := langs.m[langCode].m[_package]
-	pack.Lock()
-	defer pack.Unlock()
+	pack._m.Lock()
+	defer pack._m.Unlock()
 	for key, value := range keyValue {
 		pack.m[key] = value
 	}
 }
 
 func LangAlias(aliasName, of string) {
-	langs.Lock()
-	defer langs.Unlock()
+	langs._m.Lock()
+	defer langs._m.Unlock()
 	if langs.m[of] == nil {
 		return
 	}
