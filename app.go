@@ -139,7 +139,7 @@ func NewApp() *App {
 	app.SessionExpireCheckInterval = 10 * time.Minute
 	app.SessionHandler = SessionStateless{}
 
-	app.TimeFormat = NewAtomicString("Monday, _2 January 2006, 15:04")
+	app.TimeFormat = NewAtomicString("timeFormat")
 
 	app.DefaultRouter = app.Router("main")
 
@@ -278,7 +278,6 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 			Group:       Group{},
 			Session:     nil,
 			TimeLoc:     app.TimeLoc,
-			TimeFormat:  app.TimeFormat.String(),
 			DirPathDump: []string{},
 			Writers:     map[string]io.Writer{},
 			Readers:     map[string]io.Reader{},
@@ -301,6 +300,7 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	}
 
 	c.Res = Res{res.(rw), c}
+	c.Pub.TimeFormat = c.Lang().Key(app.TimeFormat.String())
 
 	c.initWriter()
 	c.initTrueHost()
