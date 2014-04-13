@@ -20,7 +20,7 @@ func execMethodInterface(c *Context, me MethodInterface) {
 	in[0] = reflect.ValueOf(c)
 	view.Call(in)
 
-	(AutoPopulateFields{"C"}).Do(c, vc)
+	c.Auto().PopulateStructFieldsValue(vc, "C")
 
 	if c.Terminated() {
 		return

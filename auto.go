@@ -1,15 +1,20 @@
 package core
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 	"sync"
 )
 
-// Auto Populate Fields, stores expections!
-type AutoPopulateFields []string
+func isStructPtr(t reflect.Type) bool {
+	return t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct
+}
 
-func (au AutoPopulateFields) check(name string) bool {
+// Auto Populate Fields, stores expections!
+type autoPopulateFields []string
+
+func (au autoPopulateFields) check(name string) bool {
 	for _, item := range au {
 		if name == item {
 			return true
@@ -21,7 +26,13 @@ func (au AutoPopulateFields) check(name string) bool {
 /*
 Populate Struct Field Automatically
 */
-func (au AutoPopulateFields) Do(c *Context, vc reflect.Value) {
+func (au autoPopulateFields) do(c *Context, vc reflect.Value) {
+	t := vc.Type()
+	if !isStructPtr(t) {
+		panic(fmt.Errorf("%v must be a struct pointer", t))
+		return
+	}
+
 	s := vc.Elem()
 	typeOfT := s.Type()
 	group := mustGroup(c.Pub.Group)
@@ -145,4 +156,20 @@ func (reg regExpCacheSystem) Get(str string) *regexp.Regexp {
 	_re := regexp.MustCompile(str)
 	reg.res[str] = _re
 	return _re
+}
+
+type Auto struct {
+	c *Context
+}
+
+func (c *Context) Auto() Auto {
+	return Auto{c}
+}
+
+func (a Auto) PopulateStructFieldsValue(structPointer reflect.Value, exclude ...string) {
+	(autoPopulateFields(exclude)).do(a.c, structPointer)
+}
+
+func (a Auto) PopulateStructFields(structPointer interface{}, exclude ...string) {
+	a.PopulateStructFieldsValue(reflect.ValueOf(structPointer), exclude...)
 }
