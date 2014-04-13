@@ -166,10 +166,12 @@ func (c *Context) Auto() Auto {
 	return Auto{c}
 }
 
+// Auto Populate from c.Pub.Group and c.Pub.Data
 func (a Auto) PopulateStructFieldsValue(structPointer reflect.Value, exclude ...string) {
 	(autoPopulateFields(exclude)).do(a.c, structPointer)
 }
 
+// Auto Populate from c.Pub.Group and c.Pub.Data
 func (a Auto) PopulateStructFields(structPointer interface{}, exclude ...string) {
 	a.PopulateStructFieldsValue(reflect.ValueOf(structPointer), exclude...)
 }
