@@ -15,6 +15,9 @@ import (
 type App struct {
 	Name string
 
+	mux       *http.ServeMux
+	muxSecure *http.ServeMux
+
 	// ISO-639 and ISO-3166, e.g en-GB (English Great Britain)
 	LangCode *AtomicString
 
@@ -73,9 +76,6 @@ type App struct {
 
 	FormMemoryLimit int64
 
-	fileServers     map[string]RouteHandler
-	fileServersSync sync.Mutex
-
 	data     map[string]interface{}
 	dataSync sync.RWMutex
 
@@ -92,6 +92,12 @@ func NewApp() *App {
 
 	app.Name = "default"
 
+	app.mux = http.NewServeMux()
+	app.muxSecure = http.NewServeMux()
+
+	app.mux.Handle("/", app)
+	app.muxSecure.Handle("/", AppSecure{app})
+
 	app.LangCode = NewAtomicString("en-GB")
 
 	appCount++
@@ -107,7 +113,6 @@ func NewApp() *App {
 	app.htmlFileCacheSync.Lock()
 	app.htmlGlobLockerSync.Lock()
 	app.sessionMapSync.Lock()
-	app.fileServersSync.Lock()
 	app.dataSync.Lock()
 
 	app.middlewares = map[string]*Middlewares{"main": MainMiddlewares}
@@ -118,7 +123,6 @@ func NewApp() *App {
 	app.htmlFileCache = map[string]interface{}{}
 	app.htmlGlobLocker = map[string][]string{}
 	app.sessionMap = map[string]sessionInterface{}
-	app.fileServers = map[string]RouteHandler{}
 	app.data = map[string]interface{}{}
 
 	app.middlewaresSync.Unlock()
@@ -129,7 +133,6 @@ func NewApp() *App {
 	app.htmlFileCacheSync.Unlock()
 	app.htmlGlobLockerSync.Unlock()
 	app.sessionMapSync.Unlock()
-	app.fileServersSync.Unlock()
 	app.dataSync.Unlock()
 
 	app.MiddlewareEnabled = true
@@ -248,11 +251,19 @@ func (app *App) DataSet(name string, data interface{}) {
 	app.data[name] = data
 }
 
-// Specify File Server
-func (app *App) FileServer(path, dir string) {
-	app.fileServersSync.Lock()
-	defer app.fileServersSync.Unlock()
-	app.fileServers[path] = fileServer(path, dir)
+// Specify Static File Pattern and Path
+func (app *App) Static(pattern, path string) {
+	if pattern == "/" {
+		return
+	}
+	handler := http.StripPrefix(pattern, http.FileServer(http.Dir(path)))
+	app.mux.Handle(pattern, handler)
+	app.muxSecure.Handle(pattern, handler)
+}
+
+// Alias of Static.
+func (app *App) FileServer(pattern, path string) {
+	app.Static(pattern, path)
 }
 
 // Implement http.Handler interface
@@ -318,22 +329,6 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 		defer c.debuginfo()
 	}
 
-	if app.Debug {
-		c.App.fileServersSync.Lock()
-		for dir, fileServer := range c.App.fileServers {
-			if len(c.pri.path) < len(dir) {
-				continue
-			}
-
-			if dir == c.pri.path[:len(dir)] {
-				c.App.fileServersSync.Unlock()
-				fileServer.View(c)
-				return
-			}
-		}
-		c.App.fileServersSync.Unlock()
-	}
-
 	mainMiddleware := app.Middlewares("main").Init(c)
 	defer func() {
 		mainMiddleware.Post()
@@ -368,9 +363,7 @@ func (app *App) Listen(addr string) error {
 		p, _ := toUint(port)
 		app.debugPortNumber = uint16(p)
 	}
-	mux := http.NewServeMux()
-	mux.Handle("/", app)
-	return http.ListenAndServe(addr, mux)
+	return http.ListenAndServe(addr, app.mux)
 }
 
 // Start Dummy HTTP TLS Listener
@@ -379,23 +372,17 @@ func (app *App) ListenTLSDummy(port uint16) error {
 		return nil
 	}
 	app.debugTlsPortNumber = port
-	mux := http.NewServeMux()
-	mux.Handle("/", AppSecure{app})
-	return http.ListenAndServe(fmt.Sprint(":", port), mux)
+	return http.ListenAndServe(fmt.Sprint(":", port), app.muxSecure)
 }
 
 // Start HTTP TLS Listener
 func (app *App) ListenTLS(addr, certFile, keyFile string) error {
-	mux := http.NewServeMux()
-	mux.Handle("/", AppSecure{app})
-	return http.ListenAndServeTLS(addr, certFile, keyFile, mux)
+	return http.ListenAndServeTLS(addr, certFile, keyFile, app.muxSecure)
 }
 
 // Start FastCGI Listener
 func (app *App) ListenFCGI(l net.Listener) error {
-	mux := http.NewServeMux()
-	mux.Handle("/", app)
-	return fcgi.Serve(l, mux)
+	return fcgi.Serve(l, app.mux)
 }
 
 // A Secure Adapter for App!
