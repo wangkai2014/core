@@ -13,6 +13,12 @@ func (c *Context) Fmt() Fmt {
 	return Fmt{c}
 }
 
+// Errorf formats according to a format specifier and returns the strings
+// as a value that satisfies error.
+func (f Fmt) Errorf(format string, a ...interface{}) error {
+	return fmt.Errorf(format, a...)
+}
+
 // Print formats using the default formats for its operands and writes to client (http web server or browser).
 // Spaces are added between operands when neither is a string.
 // It returns the number of bytes written and any write error encountered.
