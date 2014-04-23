@@ -317,10 +317,10 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 	c.initTrueHost()
 	c.initTrueRemoteAddr()
 	c.initTruePath()
-	c.initSecure()
 	c.initSession()
 
 	if app.Debug && app.TestView != nil {
+		defer c.recover()
 		c.RouteDealer(app.TestView)
 		return
 	}
@@ -329,6 +329,8 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 		defer c.debuginfo()
 	}
 
+	defer c.recover()
+
 	mainMiddleware := app.Middlewares("main").Init(c)
 	defer func() {
 		mainMiddleware.Post()
@@ -336,8 +338,6 @@ func (app *App) serve(res http.ResponseWriter, req *http.Request, secure bool) {
 			panic(ErrorStr(c.Lang().Key("errNoOutput")))
 		}
 	}()
-
-	defer c.recover()
 
 	if c.Terminated() {
 		return

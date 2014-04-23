@@ -31,6 +31,7 @@ func (c *Context) initWriter() {
 	}
 	c.pri.reswrite = c.Res.rw
 	c.Res.Header().Set("Content-Encoding", "plain")
+
 }
 
 func (c *Context) initTrueHost() {
@@ -73,13 +74,6 @@ func (c *Context) initTruePath() {
 		}
 
 		c.Req.URL.RawQuery = strings.Join(urls[1:], "?")
-	}
-}
-
-func (c *Context) initSecure() {
-	if c.Req.Header.Get("X-Secure-Mode") != "" {
-		c.Req.Proto = "S" + c.Req.Proto
-		c.Req.Header.Del("X-Secure-Mode")
 	}
 }
 
