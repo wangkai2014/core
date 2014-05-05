@@ -75,3 +75,12 @@ func (pr *Protocol) setType(t reflect.Type) {
 func (pr *Protocol) asn_Core_0002() {
 	// Do nothing
 }
+
+func (_ *Protocol) init(ro RouteHandler) {
+	pr := ro.(ProtocolInterface)
+	t := pr.getType()
+	if t == nil {
+		t = reflect.Indirect(reflect.ValueOf(pr)).Type()
+		pr.setType(t)
+	}
+}

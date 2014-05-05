@@ -161,6 +161,15 @@ func (me *Method) asn_Core_0001() {
 	// Do nothing
 }
 
+func (_ *Method) init(ro RouteHandler) {
+	me := ro.(MethodInterface)
+	t := me.getType()
+	if t == nil {
+		t = reflect.Indirect(reflect.ValueOf(me)).Type()
+		me.setType(t)
+	}
+}
+
 // Alais of Method
 type Verb struct {
 	Method

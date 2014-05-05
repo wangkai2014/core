@@ -50,6 +50,14 @@ func NewRouter() *Router {
 func (ro *Router) register(RegExpRule string, handler RouteHandler) {
 	ro.Lock()
 	defer ro.Unlock()
+
+	switch t := handler.(type) {
+	case routeInit:
+		t.init(handler)
+	case RouteInit:
+		t.Init(handler)
+	}
+
 	for _, route := range ro.routes {
 		if route.RegExp == RegExpRule {
 			route.Route = handler
@@ -194,6 +202,16 @@ func (ro RouteReset) View(c *Context) {
 type RouteAsserter interface {
 	RouteHandler
 	Assert(*Context, RouteHandler)
+}
+
+type routeInit interface {
+	RouteHandler
+	init(RouteHandler)
+}
+
+type RouteInit interface {
+	RouteHandler
+	Init(RouteHandler)
 }
 
 func (c *Context) RouteDealer(ro RouteHandler) {

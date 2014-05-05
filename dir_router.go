@@ -109,6 +109,13 @@ func (dir *DirRouter) register(dir_ string, handler RouteHandler) {
 		return
 	}
 
+	switch t := handler.(type) {
+	case routeInit:
+		t.init(handler)
+	case RouteInit:
+		t.Init(handler)
+	}
+
 	dir_ = strings.TrimSpace(dir_)
 
 	switch t := handler.(type) {
