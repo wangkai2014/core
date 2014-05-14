@@ -42,15 +42,20 @@ type lang struct {
 
 func (l *Lang) Package(name string) *LangPackage {
 	var lang, fallback *langPackage
-	l.lang._m.RLock()
-	defer l.lang._m.RUnlock()
-	l.fallback._m.RLock()
-	defer l.fallback._m.RUnlock()
-	if l.lang.m[name] != nil {
-		lang = l.lang.m[name]
+	if l.lang != nil {
+		l.lang._m.RLock()
+		defer l.lang._m.RUnlock()
+		if l.lang.m[name] != nil {
+			lang = l.lang.m[name]
+		}
 	}
-	if l.fallback.m[name] != nil {
-		fallback = l.fallback.m[name]
+	if l.fallback != nil {
+		l.fallback._m.RLock()
+		defer l.fallback._m.RUnlock()
+
+		if l.fallback.m[name] != nil {
+			fallback = l.fallback.m[name]
+		}
 	}
 	return &LangPackage{lang, fallback}
 }
