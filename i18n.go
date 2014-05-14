@@ -5,25 +5,54 @@ import (
 )
 
 type LangPackage struct {
+	langPackage *langPackage
+	fallback    *langPackage
+}
+
+type langPackage struct {
 	_m sync.RWMutex
 	m  map[string]string
 }
 
 func (l *LangPackage) Key(name string) string {
-	l._m.RLock()
-	defer l._m.RUnlock()
-	return l.m[name]
+	if l.langPackage != nil {
+		l.langPackage._m.RLock()
+		defer l.langPackage._m.RUnlock()
+		if l.langPackage.m[name] != "" {
+			return l.langPackage.m[name]
+		}
+	}
+	if l.fallback != nil {
+		l.fallback._m.RLock()
+		defer l.fallback._m.RUnlock()
+		return l.fallback.m[name]
+	}
+	return ""
 }
 
 type Lang struct {
+	lang     *lang
+	fallback *lang
+}
+
+type lang struct {
 	_m sync.RWMutex
-	m  map[string]*LangPackage
+	m  map[string]*langPackage
 }
 
 func (l *Lang) Package(name string) *LangPackage {
-	l._m.RLock()
-	defer l._m.RUnlock()
-	return l.m[name]
+	var lang, fallback *langPackage
+	l.lang._m.RLock()
+	defer l.lang._m.RUnlock()
+	l.fallback._m.RLock()
+	defer l.fallback._m.RUnlock()
+	if l.lang.m[name] != nil {
+		lang = l.lang.m[name]
+	}
+	if l.fallback.m[name] != nil {
+		fallback = l.fallback.m[name]
+	}
+	return &LangPackage{lang, fallback}
 }
 
 func (l *Lang) Key(name string) string {
@@ -32,28 +61,28 @@ func (l *Lang) Key(name string) string {
 
 type _langs struct {
 	_m sync.RWMutex
-	m  map[string]*Lang
+	m  map[string]*lang
 }
 
-var langs = &_langs{m: map[string]*Lang{}}
+var langs = &_langs{m: map[string]*lang{}}
 
 func (c *Context) Lang() *Lang {
 	langs._m.RLock()
 	defer langs._m.RUnlock()
-	return langs.m[c.Pub.LangCode]
+	return &Lang{langs.m[c.Pub.LangCode], langs.m[c.App.LangCode.String()]}
 }
 
 func LangKeyValueRegister(langCode, _package string, keyValue map[string]string) {
 	langs._m.Lock()
 	defer langs._m.Unlock()
 	if langs.m[langCode] == nil {
-		langs.m[langCode] = &Lang{m: map[string]*LangPackage{_package: &LangPackage{m: keyValue}}}
+		langs.m[langCode] = &lang{m: map[string]*langPackage{_package: &langPackage{m: keyValue}}}
 		return
 	}
 	langs.m[langCode]._m.Lock()
 	defer langs.m[langCode]._m.Unlock()
 	if langs.m[langCode].m[_package] == nil {
-		langs.m[langCode].m[_package] = &LangPackage{m: keyValue}
+		langs.m[langCode].m[_package] = &langPackage{m: keyValue}
 		return
 	}
 	pack := langs.m[langCode].m[_package]
