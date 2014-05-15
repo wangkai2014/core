@@ -94,6 +94,7 @@ type private struct {
 	firstWrite bool
 	session    *SessionAdv
 	secure     bool
+	form       *Form
 }
 
 // Strictly Public Variable
