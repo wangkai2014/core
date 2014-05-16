@@ -12,16 +12,16 @@ type Value struct {
 }
 
 func (v Value) Get(key string) string {
-	var value string
 
 	if v.Form == nil {
 		goto postForm
 	}
 
-	value = v.Form.Get(key)
-	if value != "" {
-		return value
+	if len(v.Form[key]) <= 0 {
+		goto postForm
 	}
+
+	return v.Form.Get(key)
 
 postForm:
 
@@ -29,15 +29,16 @@ postForm:
 		goto multi
 	}
 
-	value = v.PostForm.Get(key)
-	if value != "" {
-		return value
+	if len(v.PostForm[key]) <= 0 {
+		goto multi
 	}
+
+	return v.PostForm.Get(key)
 
 multi:
 
 	if v.MultipartForm == nil {
-		return value
+		return ""
 	}
 
 	return v.MultipartForm.Get(key)
