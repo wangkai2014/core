@@ -205,10 +205,6 @@ func (dir *DirRouter) View(c *Context) {
 
 	c.Pub.DirPathDump = append(c.Pub.DirPathDump, dirname)
 
-	if dir.group != "" {
-		c.Pub.Group[dir.group] = dirname
-	}
-
 	dirname = strings.TrimSpace(dirname)
 
 	dir.RLock()
@@ -223,6 +219,8 @@ func (dir *DirRouter) View(c *Context) {
 					return
 				}
 				c.pathDealer(dir.regexp, genericStr(dirname))
+			} else if dir.group != "" {
+				c.Pub.Group[dir.group] = dirname
 			}
 			dir.asterisk.View(c)
 			return
